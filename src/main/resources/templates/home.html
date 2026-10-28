@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Koto Pai</title>
+  <link rel="stylesheet" th:href="@{/css/kotopai.css}">
+</head>
+<body>
+  <main class="wrap">
+    <h1 class="brand">Koto <span>Pai?</span></h1>
+    <p class="muted">Hello, world! The app is running.</p>
+
+    <section class="card">
+      <h2>Database</h2>
+      <p th:if="${dbUp}"><span class="tag ok">Connected</span></p>
+      <p th:unless="${dbUp}"><span class="tag warn">Not connected</span></p>
+
+      <dl th:if="${dbUp}">
+        <dt>Server</dt><dd th:text="${dbVersion}">PostgreSQL</dd>
+        <dt>Server time</dt><dd th:text="${dbTime}">now</dd>
+      </dl>
+      <p th:unless="${dbUp}" class="muted">
+        Error: <code th:text="${dbError}">Exception</code>.
+        Check your <code>.env</code> (see docs/SUPABASE_SETUP.md).
+      </p>
+    </section>
+  </main>
+</body>
+</html>

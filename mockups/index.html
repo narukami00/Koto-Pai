@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Koto Pai – UI Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --teal:#18604B; --teal-d:#0f4536; --green:#4C9A41; --green-ink:#2f7a2a;
+  --orange:#DB8428; --orange-ink:#A85F12; --cream:#EDE7B4; --bg:#FAF8EE;
+  --card:#fff; --line:#ECE8CF; --ink:#14291f; --muted:#667267;
+  --r:18px;
+}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.4;font-variant-numeric:tabular-nums}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+
+/* ---------- layout shell (mobile first) ---------- */
+.shell{min-height:100vh;padding-bottom:84px}
+main{padding:0 16px 24px;max-width:640px;margin:0 auto}
+.screen{display:none}.screen.on{display:block}
+.head{display:flex;align-items:center;justify-content:space-between;padding:18px 0 14px}
+.head h1{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.head p{color:var(--muted);font-size:13px;margin-top:2px}
+.icon-btn{width:40px;height:40px;border-radius:50%;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;position:relative}
+.dot{position:absolute;top:8px;right:9px;width:9px;height:9px;border-radius:50%;background:var(--orange);border:2px solid #fff}
+
+/* bottom tab bar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(8px + env(safe-area-inset-bottom));z-index:20}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--muted);padding:6px 0}
+.tab.on{color:var(--teal)}
+.tab.fab span{display:grid;place-items:center;width:52px;height:52px;margin-top:-22px;border-radius:50%;background:var(--orange);color:#fff;box-shadow:0 6px 16px rgba(219,132,40,.45);border:4px solid var(--bg)}
+.tab.fab{color:var(--muted)}
+.side{display:none}
+
+/* ---------- components ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.card+.card,.card+.sec,.sec+.card{margin-top:12px}
+.sec{display:flex;justify-content:space-between;align-items:baseline;margin:22px 2px 10px}
+.sec h2{font-size:16px;font-weight:700}.sec a,.link{color:var(--teal);font-weight:600;font-size:13px;cursor:pointer}
+.hero{background:linear-gradient(145deg,var(--teal),var(--teal-d));color:#fff;border-radius:22px;padding:20px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:rgba(237,231,180,.10)}
+.hero small{opacity:.8;font-size:12px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.hero .big{font-size:36px;font-weight:800;letter-spacing:-.02em;margin:4px 0 14px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pill{background:rgba(255,255,255,.12);border-radius:14px;padding:10px 12px}
+.pill b{display:block;font-size:17px}
+.pill small{display:block;font-size:11px;opacity:.8;margin-bottom:2px}
+.pill.pg b{color:#b7e8a8}.pill.po b{color:#ffcf99}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.act{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;font-weight:600}
+.act .ic{width:38px;height:38px;border-radius:12px;background:var(--cream);color:var(--teal);display:grid;place-items:center}
+.row{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0;padding-top:2px}.row:last-child{padding-bottom:2px}
+.row .grow{flex:1;min-width:0}.row b{display:block;font-weight:600}.row small{color:var(--muted);font-size:12.5px}
+.av{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-weight:700;flex:none;background:var(--cream);color:var(--teal)}
+.av.a{background:#cfe6c9;color:var(--green-ink)}.av.b{background:#f6dbb8;color:var(--orange-ink)}.av.g{background:#e9e9e2;color:#555;border:1.5px dashed #aaa}
+.amt{font-weight:700;text-align:right}.amt small{display:block;font-weight:500}
+.get{color:var(--green-ink)}.owe{color:var(--orange-ink)}
+.tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--cream);color:var(--teal);vertical-align:middle}
+.tag.guest{background:transparent;border:1px dashed #9a9a88;color:#6b6b5e}
+.tag.ok{background:#d7ecd2;color:var(--green-ink)}.tag.warn{background:#f6dbb8;color:var(--orange-ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:14px;font-weight:700;background:var(--teal);color:#fff}
+.btn:active{background:var(--teal-d)}
+.btn.block{width:100%}
+.btn.sec2{background:var(--cream);color:var(--teal)}
+.btn.line{background:#fff;color:var(--teal);border:1.5px solid var(--line)}
+.btn.sm{padding:7px 14px;font-size:13px;border-radius:11px}
+.btn.or{background:var(--orange);color:#fff}
+.banner{display:flex;gap:12px;background:#fff;border:1px solid #f1d3a8;border-left:4px solid var(--orange);border-radius:16px;padding:14px;margin-top:14px}
+.banner .t{flex:1}.banner b{font-weight:700}.banner p{font-size:13px;color:var(--muted);margin-top:2px}
+.banner .bt{display:flex;gap:8px;margin-top:10px}
+.timeline{position:relative;margin-left:6px}
+.ev{display:flex;gap:14px;padding-bottom:18px;position:relative}
+.ev:not(:last-child):before{content:"";position:absolute;left:11px;top:26px;bottom:0;width:2px;background:var(--line)}
+.ev .d{width:24px;height:24px;border-radius:50%;background:var(--cream);color:var(--teal);display:grid;place-items:center;flex:none}
+.ev .d svg{width:13px;height:13px}
+.ev small{color:var(--muted)}
+
+/* wizard */
+.steps{display:flex;gap:6px;margin:0 0 16px}
+.steps i{flex:1;height:5px;border-radius:9px;background:var(--line)}.steps i.on{background:var(--teal)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -16px;padding-inline:16px;scrollbar-width:none}
+.chip{padding:9px 16px;border-radius:99px;background:#fff;border:1.5px solid var(--line);font-weight:600;white-space:nowrap}
+.chip.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.who{display:flex;gap:-6px}
+.who span{width:26px;height:26px;border-radius:50%;border:2px solid #fff;margin-left:-8px;display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--cream);color:var(--teal)}
+.who span:first-child{margin-left:0}
+.item{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0;padding-top:0}
+.item .grow{flex:1}.item b{font-weight:600}.item small{color:var(--muted);display:block}
+.share{display:grid;grid-template-columns:auto 1fr 74px 64px;align-items:center;gap:10px;padding:8px 0}
+.share .nm{font-weight:600}
+input[type=number]{width:100%;padding:10px 10px;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-weight:700;text-align:right;background:#fff}
+input[type=range]{width:100%;accent-color:var(--teal)}
+input:focus{outline:2px solid var(--green);outline-offset:1px}
+.bar{height:10px;border-radius:99px;overflow:hidden;display:flex;background:var(--line);margin:10px 0 6px}
+.bar i{display:block;height:100%}
+.help{font-size:12.5px;color:var(--muted)}
+.field{display:block;margin-top:12px}.field span{font-size:12px;font-weight:600;color:var(--muted)}
+.field input[type=text]{width:100%;padding:12px;border:1.5px solid var(--line);border-radius:12px;font:inherit;margin-top:5px;background:#fff}
+.searchbox{display:flex;gap:8px}.searchbox input{flex:1;padding:12px;border:1.5px solid var(--line);border-radius:12px;font:inherit;background:#fff}
+.flow{display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--line);margin-top:8px}
+.flow .arr{color:var(--orange)}.flow .amt{margin-left:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:right;padding:4px 4px 8px;font-weight:600}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.tbl td{padding:10px 4px;border-top:1px solid var(--line);text-align:right}
+.tbl-wrap{overflow-x:auto;margin:0 -4px}
+.profile{display:flex;flex-direction:column;align-items:center;text-align:center;padding:10px 0 4px}
+.profile .av{width:84px;height:84px;font-size:30px;margin-bottom:10px}
+
+/* ---------- desktop ---------- */
+@media(min-width:900px){
+  .shell{padding-bottom:0;display:flex}
+  .tabbar{display:none}
+  .side{display:flex;flex-direction:column;gap:4px;width:250px;flex:none;background:var(--teal);color:#e8f1ea;padding:26px 16px;position:sticky;top:0;height:100vh}
+  .side .brand{font-size:24px;font-weight:800;color:#fff;padding:0 12px 22px;letter-spacing:-.02em}
+  .side .brand span{color:var(--orange)}
+  .side .tab{flex-direction:row;gap:12px;font-size:14px;color:#cfe3d6;padding:11px 14px;border-radius:12px}
+  .side .tab:hover{background:rgba(255,255,255,.08)}
+  .side .tab.on{background:var(--cream);color:var(--teal)}
+  .side .tab.cta{margin:10px 0;background:var(--orange);color:#fff;justify-content:center;font-weight:700}
+  .side .me{margin-top:auto;display:flex;gap:10px;align-items:center;padding:12px;border-top:1px solid rgba(255,255,255,.15);font-size:13px}
+  .content{flex:1}
+  main{max-width:1000px;padding:20px 40px 40px;margin:0}
+  .head h1{font-size:28px}
+  .cols{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;align-items:start}
+  .cols>.card+.card,.cols>div>.card+.card{margin-top:12px}
+  .hero .big{font-size:44px}
+}
+@media(max-width:899px){.cols>div+div{margin-top:12px}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.6 0 4.5 1.8 4.5 4.5"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></symbol>
+  <symbol id="swap" viewBox="0 0 24 24"><path d="M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 20a2 2 0 0 0 4 0"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+  <symbol id="chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+</svg>
+
+<div class="shell">
+  <!-- desktop sidebar -->
+  <aside class="side">
+    <div class="brand">Koto <span>Pai?</span></div>
+    <button class="tab on" data-s="home"><svg class="i"><use href="#home"/></svg>Home</button>
+    <button class="tab" data-s="friends"><svg class="i"><use href="#users"/></svg>Friends</button>
+    <button class="tab cta" data-s="new"><svg class="i"><use href="#plus"/></svg>New outing</button>
+    <button class="tab" data-s="settle"><svg class="i"><use href="#swap"/></svg>Settle up</button>
+    <button class="tab" data-s="activity"><svg class="i"><use href="#clock"/></svg>Activity</button>
+    <button class="tab" data-s="profile"><svg class="i"><use href="#user"/></svg>Profile</button>
+    <div class="me"><div class="av">R</div><div><b>Rafsan</b><br><span style="opacity:.7">@rafsan10</span></div></div>
+  </aside>
+
+  <div class="content">
+  <main>
+
+  <!-- HOME -->
+  <section class="screen on" id="home">
+    <div class="head"><div><p>Good evening</p><h1>Rafsan</h1></div><button class="icon-btn" onclick="go('activity')"><svg class="i"><use href="#bell"/></svg><span class="dot"></span></button></div>
+
+    <div class="hero"><small>Net balance</small><div class="big">+৳650</div>
+      <div class="split"><div class="pill pg"><small>You’ll get</small><b>৳1,000</b></div><div class="pill po"><small>You owe</small><b>৳350</b></div></div></div>
+
+    <div class="banner"><div class="t"><b>Samiha added “Cox’s Bazar Trip”</b><p>Your share is ৳350. Something wrong? Dispute it and it goes back to Samiha.</p>
+      <div class="bt"><button class="btn sm line">Dispute</button><button class="btn sm">Looks right</button></div></div></div>
+
+    <div class="actions">
+      <button class="act" onclick="go('new')"><span class="ic"><svg class="i"><use href="#plus"/></svg></span>New outing</button>
+      <button class="act" onclick="go('settle')"><span class="ic"><svg class="i"><use href="#swap"/></svg></span>Settle up</button>
+      <button class="act" onclick="go('friends')"><span class="ic"><svg class="i"><use href="#users"/></svg></span>Add friend</button>
+    </div>
+
+    <div class="cols">
+      <div>
+        <div class="sec"><h2>Balances</h2><a onclick="go('friends')">See all</a></div>
+        <div class="card">
+          <div class="row"><div class="av a">N</div><div class="grow"><b>Nabila</b><small>Burger Night</small></div><div class="amt get">+৳400<small>owes you</small></div></div>
+          <div class="row"><div class="av">T</div><div class="grow"><b>Tanvir</b><small>Burger Night</small></div><div class="amt get">+৳300<small>owes you</small></div></div>
+          <div class="row"><div class="av g">R</div><div class="grow"><b>Rahim <span class="tag guest">Guest</span></b><small>Burger Night</small></div><div class="amt get">+৳300<small>owes you</small></div></div>
+          <div class="row"><div class="av b">S</div><div class="grow"><b>Samiha</b><small>Cox’s Bazar Trip</small></div><div class="amt owe">−৳350<small>you owe</small></div></div>
+        </div>
+      </div>
+      <div>
+        <div class="sec"><h2>Recent outings</h2><a onclick="go('activity')">History</a></div>
+        <div class="card">
+          <div class="row" onclick="go('outing')" style="cursor:pointer"><div class="av"><svg class="i"><use href="#receipt"/></svg></div><div class="grow"><b>Burger Night</b><small>Eating · Today · 4 people</small></div><div class="amt">৳1,900</div></div>
+          <div class="row"><div class="av b"><svg class="i"><use href="#receipt"/></svg></div><div class="grow"><b>Cox’s Bazar Trip</b><small>Travel · Yesterday</small></div><div class="amt">৳8,400</div></div>
+          <div class="row"><div class="av a"><svg class="i"><use href="#receipt"/></svg></div><div class="grow"><b>Hiking Day</b><small>Adventure · Mon</small></div><div class="amt">৳3,200</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEW OUTING -->
+  <section class="screen" id="new">
+    <div class="head"><div style="display:flex;gap:10px;align-items:center"><button class="icon-btn" onclick="go('home')"><svg class="i"><use href="#back"/></svg></button><div><h1>New outing</h1><p>Step 2 of 4 · Items &amp; shares</p></div></div></div>
+    <div class="steps"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+
+    <div class="chips"><button class="chip on">Eating</button><button class="chip">Travel</button><button class="chip">Adventure</button><button class="chip">Entertainment</button><button class="chip">Other</button></div>
+
+    <div class="cols">
+      <div>
+        <div class="sec"><h2>Items</h2><a>+ Add item</a></div>
+        <div class="card">
+          <div class="item"><div class="grow"><b>Burger</b><small>Rafsan</small></div><b>৳200</b></div>
+          <div class="item"><div class="grow"><b>Pizza</b><small>Tanvir</small></div><b>৳500</b></div>
+          <div class="item"><div class="grow"><b>Cold coffee</b><small>Nabila</small></div><b>৳200</b></div>
+          <div class="item"><div class="grow"><b>Large pizza <span class="tag">Shared</span></b><small>Split between 3</small></div><b>৳1,000</b></div>
+        </div>
+
+        <div class="sec"><h2>Split “Large pizza”</h2></div>
+        <div class="card">
+          <p class="help">A rough estimate is fine. We start with an equal split.</p>
+          <div class="share"><div class="av" style="width:34px;height:34px">R</div><span class="nm">Rafsan</span><input id="p1" type="number" value="50" inputmode="numeric"><b id="a1" style="text-align:right"></b></div>
+          <div class="share"><div class="av a" style="width:34px;height:34px">T</div><span class="nm">Tanvir</span><input id="p2" type="number" value="30" inputmode="numeric"><b id="a2" style="text-align:right"></b></div>
+          <div class="share"><div class="av b" style="width:34px;height:34px">N</div><span class="nm">Nabila</span><input id="p3" type="number" value="20" inputmode="numeric"><b id="a3" style="text-align:right"></b></div>
+          <div class="bar"><i id="b1" style="background:var(--teal)"></i><i id="b2" style="background:var(--green)"></i><i id="b3" style="background:var(--orange)"></i></div>
+          <small id="chk" class="help"></small>
+        </div>
+      </div>
+
+      <div>
+        <div class="sec"><h2>Who’s in</h2></div>
+        <div class="card">
+          <div class="row"><div class="av">R</div><div class="grow"><b>Rafsan</b><small>You · creator</small></div></div>
+          <div class="row"><div class="av a">T</div><div class="grow"><b>Tanvir</b><small>Friend</small></div></div>
+          <div class="row"><div class="av b">N</div><div class="grow"><b>Nabila</b><small>Friend</small></div></div>
+          <div class="row"><div class="av g">R</div><div class="grow"><b>Rahim <span class="tag guest">Guest</span></b><small>Tracked under you</small></div></div>
+          <div style="display:flex;gap:8px;margin-top:12px"><button class="btn sm sec2">+ Friend</button><button class="btn sm sec2">+ Guest</button></div>
+        </div>
+        <div class="card" style="background:var(--cream);border-color:#ddd59a;margin-top:12px"><p class="help" style="color:#4d4a2a">No approvals needed. Everyone just gets a notification with what they owe and can dispute it.</p></div>
+        <div style="display:flex;gap:10px;margin-top:16px"><button class="btn line" onclick="go('home')">Back</button><button class="btn block" onclick="go('outing')">Next: who paid</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OUTING DETAIL -->
+  <section class="screen" id="outing">
+    <div class="head"><div style="display:flex;gap:10px;align-items:center"><button class="icon-btn" onclick="go('home')"><svg class="i"><use href="#back"/></svg></button><div><h1>Burger Night</h1><p>Eating · Today · by Rafsan</p></div></div><span class="tag ok">Active</span></div>
+    <div class="hero" style="padding:16px 20px"><small>Bill total</small><div class="big" style="font-size:32px;margin-bottom:4px">৳1,900</div><span style="opacity:.8;font-size:13px">Paid ৳1,900 · matches ✓</span></div>
+
+    <div class="cols">
+      <div>
+        <div class="sec"><h2>Breakdown</h2></div>
+        <div class="card tbl-wrap"><table class="tbl">
+          <tr><th>Person</th><th>Ate</th><th>Paid</th><th>Net</th></tr>
+          <tr><td><b>Rafsan</b></td><td>৳700</td><td>৳1,400</td><td class="get"><b>+700</b></td></tr>
+          <tr><td><b>Tanvir</b></td><td>৳800</td><td>৳500</td><td class="owe"><b>−300</b></td></tr>
+          <tr><td><b>Nabila</b></td><td>৳400</td><td>৳0</td><td class="owe"><b>−400</b></td></tr>
+        </table>
+        <p class="help" style="margin-top:10px;padding:0 4px">Ate = own items + share of the large pizza (Rafsan 50%, Tanvir 30%, Nabila 20%).</p></div>
+      </div>
+      <div>
+        <div class="sec"><h2>Who pays whom</h2></div>
+        <div class="card">
+          <div class="flow"><div class="av" style="width:34px;height:34px">T</div><b>Tanvir</b><svg class="i arr"><use href="#chev"/></svg><b>Rafsan</b><span class="amt owe">৳300</span></div>
+          <div class="flow"><div class="av b" style="width:34px;height:34px">N</div><b>Nabila</b><svg class="i arr"><use href="#chev"/></svg><b>Rafsan</b><span class="amt owe">৳400</span></div>
+          <p class="help" style="margin-top:10px">Fewest possible transfers.</p>
+        </div>
+        <div class="sec"><h2>Guest</h2></div>
+        <div class="card">
+          <div class="flow" style="margin-top:0"><div class="av g" style="width:34px;height:34px">R</div><b>Rahim <span class="tag guest">Guest</span></b><svg class="i arr"><use href="#chev"/></svg><b>You</b><span class="amt get">৳300</span></div>
+          <button class="btn sm sec2" style="margin-top:12px"><svg class="i" style="width:16px;height:16px"><use href="#check"/></svg>Mark as paid</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTLE -->
+  <section class="screen" id="settle">
+    <div class="head"><div><h1>Settle up</h1><p>Pay back, or reroute debts between mutual friends.</p></div></div>
+    <div class="cols">
+      <div>
+        <div class="sec" style="margin-top:6px"><h2>Open debts</h2></div>
+        <div class="card">
+          <div class="row"><div class="av a">N</div><div class="grow"><b>Nabila → You</b><small>Burger Night</small></div><div class="amt get">৳400</div></div>
+          <div class="row"><div class="av">T</div><div class="grow"><b>Tanvir → You</b><small>Burger Night</small></div><div class="amt get">৳300</div></div>
+          <div class="row"><div class="av b">S</div><div class="grow"><b>You → Samiha</b><small>Cox’s Bazar Trip</small></div><div class="amt owe">৳350</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="sec" style="margin-top:6px"><h2>Smart suggestion</h2></div>
+        <div class="card" style="background:var(--teal);color:#fff;border:0">
+          <b style="font-size:16px">Skip a step</b>
+          <p style="opacity:.85;margin-top:6px;font-size:14px">Nabila owes you ৳400 and you owe Samiha ৳350. Nabila and Samiha are mutual friends, so Nabila can pay Samiha directly.</p>
+          <div class="flow" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.15)"><div class="av b" style="width:34px;height:34px">N</div><b>Nabila</b><svg class="i arr" style="color:var(--orange)"><use href="#chev"/></svg><b>Samiha</b><span class="amt">৳350</span></div>
+          <p style="opacity:.8;font-size:13px;margin-top:10px">Afterwards: Nabila owes you ৳50. You owe nobody.</p>
+          <button class="btn or block" style="margin-top:14px">Delegate ৳350</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FRIENDS -->
+  <section class="screen" id="friends">
+    <div class="head"><div><h1>Friends</h1><p>Add people by their user ID.</p></div></div>
+    <div class="searchbox"><input type="text" placeholder="Search by user ID, e.g. @tanvir_h"><button class="btn"><svg class="i"><use href="#search"/></svg></button></div>
+
+    <div class="sec"><h2>Requests <span class="tag warn">1</span></h2></div>
+    <div class="card"><div class="row"><div class="av b">F</div><div class="grow"><b>Farhan</b><small>@farhan_k wants to be friends</small></div><button class="btn sm">Accept</button></div></div>
+
+    <div class="sec"><h2>Your friends</h2></div>
+    <div class="card">
+      <div class="row"><div class="av a">N</div><div class="grow"><b>Nabila</b><small>@nabila_r</small></div><div class="amt get">+৳400</div></div>
+      <div class="row"><div class="av">T</div><div class="grow"><b>Tanvir</b><small>@tanvir_h</small></div><div class="amt get">+৳300</div></div>
+      <div class="row"><div class="av b">S</div><div class="grow"><b>Samiha</b><small>@samiha</small></div><div class="amt owe">−৳350</div></div>
+    </div>
+    <div class="sec"><h2>Guests <span class="tag guest">only you see these</span></h2></div>
+    <div class="card"><div class="row"><div class="av g">R</div><div class="grow"><b>Rahim</b><small>Guest</small></div><div class="amt get">+৳300</div></div></div>
+  </section>
+
+  <!-- ACTIVITY -->
+  <section class="screen" id="activity">
+    <div class="head"><div><h1>Activity</h1><p>The complete timeline.</p></div></div>
+    <div class="card"><div class="timeline">
+      <div class="ev"><div class="d"><svg class="i"><use href="#receipt"/></svg></div><div><b>Burger Night</b> created · ৳1,900<br><small>Today · 9:42 PM</small></div></div>
+      <div class="ev"><div class="d"><svg class="i"><use href="#receipt"/></svg></div><div><b>Samiha</b> added you to Cox’s Bazar Trip · you owe ৳350<br><small>Yesterday</small></div></div>
+      <div class="ev"><div class="d"><svg class="i"><use href="#check"/></svg></div><div><b>Tanvir</b> paid you ৳500 · Hiking Day <span class="tag ok">Settled</span><br><small>Monday</small></div></div>
+      <div class="ev"><div class="d"><svg class="i"><use href="#check"/></svg></div><div><b>Rahim</b> (guest) paid you ৳150 · Movie Night <span class="tag ok">Settled</span><br><small>Last week</small></div></div>
+    </div></div>
+  </section>
+
+  <!-- PROFILE -->
+  <section class="screen" id="profile">
+    <div class="head"><div><h1>Profile</h1></div></div>
+    <div class="card"><div class="profile"><div class="av">R</div><b style="font-size:18px">Rafsan</b><span class="help">@rafsan10 · tap to copy your ID</span></div>
+      <label class="field"><span>Display name</span><input type="text" value="Rafsan"></label>
+      <label class="field"><span>Bio</span><input type="text" value="Always the one who pays first"></label>
+      <button class="btn block" style="margin-top:16px">Save changes</button></div>
+    <div class="card" style="margin-top:12px"><div class="row"><div class="grow"><b>Outings</b></div><b>12</b></div><div class="row"><div class="grow"><b>Friends</b></div><b>8</b></div><div class="row"><div class="grow"><b>Settled so far</b></div><b>৳14,250</b></div></div>
+    <button class="btn line block" style="margin-top:12px">Log out</button>
+  </section>
+
+  </main>
+  </div>
+</div>
+
+<!-- mobile bottom tabs -->
+<nav class="tabbar">
+  <button class="tab on" data-s="home"><svg class="i"><use href="#home"/></svg>Home</button>
+  <button class="tab" data-s="friends"><svg class="i"><use href="#users"/></svg>Friends</button>
+  <button class="tab fab" data-s="new"><span><svg class="i"><use href="#plus"/></svg></span>New</button>
+  <button class="tab" data-s="activity"><svg class="i"><use href="#clock"/></svg>Activity</button>
+  <button class="tab" data-s="profile"><svg class="i"><use href="#user"/></svg>Profile</button>
+</nav>
+
+<script>
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
+  const hl = id==='outing' ? 'home' : id;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.s===hl && !t.classList.contains('fab') && !t.classList.contains('cta')));
+  scrollTo(0,0);
+}
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>go(t.dataset.s));
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on')});
+function calc(){
+  let t=0;
+  [1,2,3].forEach(i=>{
+    const v=+document.getElementById('p'+i).value||0; t+=v;
+    document.getElementById('a'+i).textContent='৳'+Math.round(v*10);
+    document.getElementById('b'+i).style.width=v+'%';
+  });
+  const c=document.getElementById('chk');
+  c.textContent=t===100?'✓ Adds up to 100%':'Adds up to '+t+'% — adjust to reach 100%';
+  c.style.color=t===100?'var(--green-ink)':'var(--orange-ink)';
+}
+['p1','p2','p3'].forEach(i=>document.getElementById(i).oninput=calc);calc();
+</script>
+</body>
+</html>
