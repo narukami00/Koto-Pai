@@ -44,7 +44,7 @@ public final class PercentageSplitStrategy extends AbstractSplitStrategy {
             percentages.add(pct);
             total = total.add(pct);
         }
-        if (!total.equals(HUNDRED)) {
+        if (total.compareTo(HUNDRED) != 0) {
             throw new IllegalArgumentException("item '%s': percentages must add up to 100, got %s"
                 .formatted(item.name(), total));
         }
