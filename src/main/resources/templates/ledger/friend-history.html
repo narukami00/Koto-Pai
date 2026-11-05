@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Friend history · Koto Pai</title>
+  <link rel="stylesheet" th:href="@{/css/kotopai.css}">
+</head>
+<body>
+  <main class="wrap dashboard">
+    <header class="page-head">
+      <div>
+        <a class="back" th:href="@{/ledger(userId=${userId})}">← Balances</a>
+        <h1 th:text="${'History with Friend #' + friendId}">Friend history</h1>
+      </div>
+    </header>
+
+    <section class="card history-list">
+      <p th:if="${#lists.isEmpty(history)}" class="empty">No debt history with this friend.</p>
+      <article class="history-row" th:each="debt : ${history}">
+        <div>
+          <b th:text="${debt.debtorId == userId ? 'You → Friend #' + friendId : 'Friend #' + friendId + ' → You'}">Direction</b>
+          <small th:text="${debt.origin + (debt.outingId == null ? '' : ' · Outing #' + debt.outingId)}">OUTING</small>
+        </div>
+        <div class="history-money">
+          <b th:text="${'৳' + debt.amount}">৳0.00</b>
+          <span class="tag" th:classappend="${debt.status.name() == 'PAID' ? ' ok' : ''}" th:text="${debt.status}">OPEN</span>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
