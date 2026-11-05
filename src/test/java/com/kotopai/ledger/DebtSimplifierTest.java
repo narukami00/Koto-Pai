@@ -14,7 +14,7 @@ class DebtSimplifierTest {
 
 	@Test
 	void simplifiesBurgerNight() {
-		List<Transfer> transfers = simplifier.simplify(List.of(
+		List<Transfer<String>> transfers = simplifier.simplify(List.of(
 				position("Rafsan", "700"),
 				position("Tanvir", "-300"),
 				position("Nabila", "-400")));
@@ -26,7 +26,7 @@ class DebtSimplifierTest {
 
 	@Test
 	void returnsNoTransfersWhenAllPositionsAreZero() {
-		List<Transfer> transfers = simplifier.simplify(List.of(
+		List<Transfer<String>> transfers = simplifier.simplify(List.of(
 				position("Rafsan", "0"),
 				position("Tanvir", "0.00"),
 				position("Nabila", "0.000")));
@@ -36,7 +36,7 @@ class DebtSimplifierTest {
 
 	@Test
 	void simplifiesSingleDebtorAndCreditor() {
-		List<Transfer> transfers = simplifier.simplify(List.of(
+		List<Transfer<String>> transfers = simplifier.simplify(List.of(
 				position("Debtor", "-250"),
 				position("Creditor", "250")));
 
@@ -47,7 +47,7 @@ class DebtSimplifierTest {
 	@Test
 	void returnsNoTransfersForCycleThatNetsToZero() {
 		// A -> B, B -> C and C -> A for the same amount leaves every net at zero.
-		List<Transfer> transfers = simplifier.simplify(List.of(
+		List<Transfer<String>> transfers = simplifier.simplify(List.of(
 				position("A", "0"),
 				position("B", "0"),
 				position("C", "0")));
@@ -57,7 +57,7 @@ class DebtSimplifierTest {
 
 	@Test
 	void roundsTransfersToTwoDecimalPlaces() {
-		List<Transfer> transfers = simplifier.simplify(List.of(
+		List<Transfer<String>> transfers = simplifier.simplify(List.of(
 				position("Debtor", "-123.456"),
 				position("Creditor", "123.456")));
 
@@ -67,14 +67,24 @@ class DebtSimplifierTest {
 	}
 
 	@Test
+	void usesHalfEvenRoundingForTies() {
+		List<Transfer<String>> transfers = simplifier.simplify(List.of(
+				position("Debtor", "-100.005"),
+				position("Creditor", "100.005")));
+
+		assertThat(transfers).containsExactly(
+				transfer("Debtor", "Creditor", "100.00"));
+	}
+
+	@Test
 	void handlesManyDebtorsAndOneCreditorWithinTransferLimit() {
-		List<NetPosition> positions = List.of(
+		List<NetPosition<String>> positions = List.of(
 				position("Creditor", "100.00"),
 				position("A", "-10.00"),
 				position("B", "-30.00"),
 				position("C", "-60.00"));
 
-		List<Transfer> transfers = simplifier.simplify(positions);
+		List<Transfer<String>> transfers = simplifier.simplify(positions);
 
 		assertThat(transfers).containsExactly(
 				transfer("C", "Creditor", "60.00"),
@@ -85,7 +95,7 @@ class DebtSimplifierTest {
 
 	@Test
 	void reprioritizesPartiallySettledBalances() {
-		List<Transfer> transfers = simplifier.simplify(List.of(
+		List<Transfer<String>> transfers = simplifier.simplify(List.of(
 				position("Debtor A", "-100.00"),
 				position("Debtor B", "-90.00"),
 				position("Creditor X", "50.00"),
@@ -106,11 +116,11 @@ class DebtSimplifierTest {
 				.hasMessageContaining("must sum to 0.00");
 	}
 
-	private static NetPosition position(String participant, String amount) {
-		return new NetPosition(participant, new BigDecimal(amount));
+	private static NetPosition<String> position(String participant, String amount) {
+		return new NetPosition<>(participant, new BigDecimal(amount));
 	}
 
-	private static Transfer transfer(String debtor, String creditor, String amount) {
-		return new Transfer(debtor, creditor, new BigDecimal(amount));
+	private static Transfer<String> transfer(String debtor, String creditor, String amount) {
+		return new Transfer<>(debtor, creditor, new BigDecimal(amount));
 	}
 }
