@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ledger · Koto Pai</title>
+  <link rel="stylesheet" th:href="@{/css/kotopai.css}">
+</head>
+<body>
+  <main class="wrap dashboard">
+    <header class="page-head">
+      <div><a class="back" th:href="@{/(userId=${summary.userId})}">← Home</a><h1>Balances</h1></div>
+    </header>
+
+    <section class="hero">
+      <small>Net balance</small>
+      <strong th:text="${'৳' + summary.net}">৳0.00</strong>
+      <div class="hero-split">
+        <div><small>You’ll get</small><b th:text="${'৳' + summary.totalReceivable}">৳0.00</b></div>
+        <div><small>You owe</small><b th:text="${'৳' + summary.totalPayable}">৳0.00</b></div>
+      </div>
+    </section>
+
+    <section class="section-block">
+      <div class="section-title"><h2>Open balances</h2><span th:text="${#lists.size(summary.balances) + ' people'}">0 people</span></div>
+      <div class="card balance-list">
+        <p th:if="${#lists.isEmpty(summary.balances)}" class="empty">You are all settled up.</p>
+        <a class="balance-row" th:each="balance : ${summary.balances}"
+           th:href="${balance.type.name() == 'USER'} ? @{/ledger/friends/{id}(id=${balance.counterpartyId},userId=${summary.userId})} : '#guest'">
+          <span class="avatar" th:text="${balance.type.name() == 'GUEST' ? 'G' : 'F'}">F</span>
+          <span class="balance-person">
+            <b th:text="${balance.type.name() == 'GUEST' ? 'Guest #' + balance.counterpartyId : 'Friend #' + balance.counterpartyId}">Friend</b>
+            <small th:text="${balance.balance.signum() >= 0 ? 'owes you' : 'you owe'}">owes you</small>
+          </span>
+          <span class="balance-amount" th:classappend="${balance.balance.signum() >= 0 ? ' get' : ' owe'}"
+                th:text="${'৳' + balance.balance}">৳0.00</span>
+        </a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
