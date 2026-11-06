@@ -25,7 +25,7 @@ public class SettlementFacade {
 		this.debtService = debtService;
 	}
 
-	public <T> List<Transfer<T>> simplify(List<NetPosition<T>> positions) {
+	public List<Transfer> simplify(List<NetPosition> positions) {
 		return simplifier.simplify(positions);
 	}
 

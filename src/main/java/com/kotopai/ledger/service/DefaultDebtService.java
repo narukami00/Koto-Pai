@@ -69,13 +69,16 @@ public class DefaultDebtService implements DebtService {
 			effectiveNets.merge(guest.ownerId(), guest.net(), BigDecimal::add);
 		}
 
-		List<NetPosition<Long>> positions = effectiveNets.entrySet().stream()
-				.map(entry -> new NetPosition<>(entry.getKey(), entry.getValue()))
+		List<NetPosition> positions = effectiveNets.entrySet().stream()
+				.map(entry -> new NetPosition(entry.getKey().toString(), entry.getValue()))
 				.toList();
-		List<Transfer<Long>> transfers = simplifier.simplify(positions);
+		List<Transfer> transfers = simplifier.simplify(positions);
 		List<Debt> generatedDebts = transfers.stream()
 				.map(transfer -> Debt.forOuting(
-						outingId, transfer.debtor(), transfer.creditor(), transfer.amount()))
+						outingId,
+						Long.valueOf(transfer.debtor()),
+						Long.valueOf(transfer.creditor()),
+						transfer.amount()))
 				.toList();
 		debts.saveAll(generatedDebts);
 
