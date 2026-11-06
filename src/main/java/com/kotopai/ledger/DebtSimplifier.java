@@ -19,7 +19,7 @@ import java.util.Set;
 public final class DebtSimplifier {
 
 	private static final int MONEY_SCALE = 2;
-	private static final RoundingMode MONEY_ROUNDING = RoundingMode.HALF_EVEN;
+	private static final RoundingMode MONEY_ROUNDING = RoundingMode.HALF_UP;
 	private static final BigDecimal ZERO = BigDecimal.ZERO.setScale(MONEY_SCALE);
 
 	/**
@@ -30,21 +30,21 @@ public final class DebtSimplifier {
 	 * @return an immutable list of transfers, each with a positive two-decimal amount
 	 * @throws IllegalArgumentException if participants are invalid or rounded nets do not balance
 	 */
-	public <T> List<Transfer<T>> simplify(List<NetPosition<T>> positions) {
+	public List<Transfer> simplify(List<NetPosition> positions) {
 		Objects.requireNonNull(positions, "positions must not be null");
 
-		PriorityQueue<Balance<T>> creditors = new PriorityQueue<>(largestFirst());
-		PriorityQueue<Balance<T>> debtors = new PriorityQueue<>(largestFirst());
-		Set<T> participants = new HashSet<>();
+		PriorityQueue<Balance> creditors = new PriorityQueue<>();
+		PriorityQueue<Balance> debtors = new PriorityQueue<>();
+		Set<String> participants = new HashSet<>();
 		BigDecimal total = ZERO;
 		int inputOrder = 0;
 
-		for (NetPosition<T> position : positions) {
+		for (NetPosition position : positions) {
 			if (position == null) {
 				throw new IllegalArgumentException("positions must not contain null");
 			}
 
-			T participant = Objects.requireNonNull(position.participant(), "participant must not be null");
+			String participant = validateParticipant(position.participant());
 			if (!participants.add(participant)) {
 				throw new IllegalArgumentException("duplicate participant: " + participant);
 			}
@@ -52,9 +52,9 @@ public final class DebtSimplifier {
 			BigDecimal amount = normalize(position.amount());
 			total = total.add(amount);
 			if (amount.signum() > 0) {
-				creditors.add(new Balance<>(participant, amount, inputOrder));
+				creditors.add(new Balance(participant, amount, inputOrder));
 			} else if (amount.signum() < 0) {
-				debtors.add(new Balance<>(participant, amount.abs(), inputOrder));
+				debtors.add(new Balance(participant, amount.abs(), inputOrder));
 			}
 			inputOrder++;
 		}
@@ -64,14 +64,14 @@ public final class DebtSimplifier {
 					"rounded net positions must sum to 0.00, but summed to " + total);
 		}
 
-		List<Transfer<T>> transfers = new ArrayList<>();
+		List<Transfer> transfers = new ArrayList<>();
 
 		while (!debtors.isEmpty() && !creditors.isEmpty()) {
-			Balance<T> debtor = debtors.remove();
-			Balance<T> creditor = creditors.remove();
+			Balance debtor = debtors.remove();
+			Balance creditor = creditors.remove();
 			BigDecimal amount = debtor.remaining().min(creditor.remaining());
 
-			transfers.add(new Transfer<>(debtor.participant(), creditor.participant(), amount));
+			transfers.add(new Transfer(debtor.participant(), creditor.participant(), amount));
 			debtor = debtor.subtract(amount);
 			creditor = creditor.subtract(amount);
 
@@ -86,6 +86,13 @@ public final class DebtSimplifier {
 		return List.copyOf(transfers);
 	}
 
+	private static String validateParticipant(String participant) {
+		if (participant == null || participant.isBlank()) {
+			throw new IllegalArgumentException("participant must not be blank");
+		}
+		return participant;
+	}
+
 	private static BigDecimal normalize(BigDecimal amount) {
 		if (amount == null) {
 			throw new IllegalArgumentException("amount must not be null");
@@ -93,17 +100,17 @@ public final class DebtSimplifier {
 		return amount.setScale(MONEY_SCALE, MONEY_ROUNDING);
 	}
 
-	private static <T> java.util.Comparator<Balance<T>> largestFirst() {
-		return (left, right) -> {
-			int amountOrder = right.remaining.compareTo(left.remaining);
-			return amountOrder != 0 ? amountOrder : Integer.compare(left.inputOrder, right.inputOrder);
-		};
-	}
+	private record Balance(String participant, BigDecimal remaining, int inputOrder)
+			implements Comparable<Balance> {
 
-	private record Balance<T>(T participant, BigDecimal remaining, int inputOrder) {
+		private Balance subtract(BigDecimal amount) {
+			return new Balance(participant, remaining.subtract(amount), inputOrder);
+		}
 
-		private Balance<T> subtract(BigDecimal amount) {
-			return new Balance<>(participant, remaining.subtract(amount), inputOrder);
+		@Override
+		public int compareTo(Balance other) {
+			int amountOrder = other.remaining.compareTo(remaining);
+			return amountOrder != 0 ? amountOrder : Integer.compare(inputOrder, other.inputOrder);
 		}
 	}
 }
