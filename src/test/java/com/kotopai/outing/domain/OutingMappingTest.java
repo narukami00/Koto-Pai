@@ -34,6 +34,8 @@ class OutingMappingTest {
         pizza.addShare(guest, new BigDecimal("20"));
         outing.addContribution(rafsan, new BigDecimal("1000.00"));
         em.persist(outing);
+        em.flush();
+        em.clear(); // forget everything in memory so the next read really comes from the database
 
         Outing loaded = em.find(Outing.class, outing.getId());
 
@@ -45,5 +47,28 @@ class OutingMappingTest {
         assertThat(loaded.getContributions()).extracting(Contribution::getAmountPaid)
             .containsExactly(new BigDecimal("1000.00"));
         assertThat(loaded.getParticipants().get(2).isGuest()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Removing an item deletes its shares too")
+    void removingItemDeletesItsShares() {
+        Outing outing = new Outing("Cleanup", OutingCategory.EATING, LocalDate.of(2026, 11, 6), 1L);
+        OutingParticipant rafsan = outing.addUserParticipant(1L);
+        OutingParticipant tanvir = outing.addUserParticipant(2L);
+        Item pizza = outing.addItem("Pizza", new BigDecimal("500.00"), SplitType.EQUAL);
+        pizza.addShare(rafsan, null);
+        pizza.addShare(tanvir, null);
+        em.persist(outing);
+        em.flush();
+        assertThat(shareCount()).isEqualTo(2);
+
+        outing.removeItem(pizza);
+        em.flush();
+
+        assertThat(shareCount()).isZero();
+    }
+
+    private long shareCount() {
+        return em.createQuery("select count(s) from ItemShare s", Long.class).getSingleResult();
     }
 }

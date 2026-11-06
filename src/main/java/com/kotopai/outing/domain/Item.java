@@ -1,6 +1,7 @@
 package com.kotopai.outing.domain;
 
 import com.kotopai.outing.engine.split.SplitType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -42,7 +43,7 @@ public class Item {
     @Column(name = "split_type", nullable = false, length = 16)
     private SplitType splitType;
 
-    @OneToMany(mappedBy = "item")
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemShare> shares = new ArrayList<>();
 
     protected Item() {
