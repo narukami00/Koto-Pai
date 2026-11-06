@@ -7,11 +7,46 @@
   <link rel="stylesheet" th:href="@{/css/kotopai.css}">
 </head>
 <body>
-  <main class="wrap">
-    <h1 class="brand">Koto <span>Pai?</span></h1>
-    <p class="muted">Hello, world! The app is running.</p>
+  <main class="wrap dashboard">
+    <header class="page-head">
+      <div>
+        <h1 class="brand">Koto <span>Pai?</span></h1>
+        <p class="muted">Hello, world! The app is running.</p>
+      </div>
+      <a th:if="${ledgerUserId != null}" class="button secondary"
+         th:href="@{/ledger(userId=${ledgerUserId})}">Full ledger</a>
+    </header>
 
-    <section class="card">
+    <section class="hero">
+      <small>Net balance</small>
+      <strong th:text="${'৳' + ledger.net}">৳0.00</strong>
+      <div class="hero-split">
+        <div><small>You’ll get</small><b th:text="${'৳' + ledger.totalReceivable}">৳0.00</b></div>
+        <div><small>You owe</small><b th:text="${'৳' + ledger.totalPayable}">৳0.00</b></div>
+      </div>
+      <p th:if="${ledgerUserId == null}" class="hero-help">
+        Add <code>?userId=1</code> to preview a user’s ledger until authentication is integrated.
+      </p>
+    </section>
+
+    <section class="section-block">
+      <div class="section-title"><h2>Balances</h2></div>
+      <div class="card balance-list">
+        <p th:if="${#lists.isEmpty(ledger.balances)}" class="empty">No open balances.</p>
+        <a class="balance-row" th:each="balance : ${ledger.balances}"
+           th:href="${balance.type.name() == 'USER'} ? @{/ledger/friends/{id}(id=${balance.counterpartyId},userId=${ledger.userId})} : '#guest'">
+          <span class="avatar" th:text="${balance.type.name() == 'GUEST' ? 'G' : 'F'}">F</span>
+          <span class="balance-person">
+            <b th:text="${balance.type.name() == 'GUEST' ? 'Guest #' + balance.counterpartyId : 'Friend #' + balance.counterpartyId}">Friend</b>
+            <small th:text="${balance.type.name()}">USER</small>
+          </span>
+          <span class="balance-amount" th:classappend="${balance.balance.signum() >= 0 ? ' get' : ' owe'}"
+                th:text="${'৳' + balance.balance}">৳0.00</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="card database-card">
       <h2>Database</h2>
       <p th:if="${dbUp}"><span class="tag ok">Connected</span></p>
       <p th:unless="${dbUp}"><span class="tag warn">Not connected</span></p>
