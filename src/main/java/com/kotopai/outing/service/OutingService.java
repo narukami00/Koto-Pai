@@ -1,5 +1,8 @@
 package com.kotopai.outing.service;
 
+import com.kotopai.common.events.OutingUpdatedEvent;
+import com.kotopai.ledger.event.OutingActivatedEvent;
+import com.kotopai.ledger.event.OutingCancelledEvent;
 import com.kotopai.outing.domain.Guest;
 import com.kotopai.outing.domain.Item;
 import com.kotopai.outing.domain.Outing;
@@ -21,6 +24,7 @@ import com.kotopai.outing.service.OutingOperationException.Reason;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Application service: the use cases of an outing (create a draft, edit it, submit, cancel, delete). It
  * orchestrates the pieces and holds no business rules of its own: status rules live in {@link OutingStatus},
  * calculation rules in the engine, and the other teams are reached only through ports. Each public method is
- * one transaction, so a failure anywhere rolls the whole use case back.
+ * one transaction, so a failure anywhere rolls the whole use case back. State changes that other features care
+ * about are announced as events (Observer): the outing never calls the ledger or notifications directly.
  */
 @Service
 @Transactional
@@ -40,15 +45,18 @@ public class OutingService {
     private final PaymentLockChecker paymentLock;
     private final OutingSnapshotMapper mapper;
     private final SplitEngine engine;
+    private final ApplicationEventPublisher events;
 
     public OutingService(OutingRepository outings, GuestRepository guests, FriendshipChecker friendships,
-                         PaymentLockChecker paymentLock, OutingSnapshotMapper mapper, SplitEngine engine) {
+                         PaymentLockChecker paymentLock, OutingSnapshotMapper mapper, SplitEngine engine,
+                         ApplicationEventPublisher events) {
         this.outings = Objects.requireNonNull(outings);
         this.guests = Objects.requireNonNull(guests);
         this.friendships = Objects.requireNonNull(friendships);
         this.paymentLock = Objects.requireNonNull(paymentLock);
         this.mapper = Objects.requireNonNull(mapper);
         this.engine = Objects.requireNonNull(engine);
+        this.events = Objects.requireNonNull(events);
     }
 
     /** New draft; the creator is always the first participant. */
@@ -81,6 +89,7 @@ public class OutingService {
 
         if (outing.getStatus() == OutingStatus.ACTIVE) {
             engine.calculate(mapper.toSnapshot(outing));
+            events.publishEvent(new OutingUpdatedEvent(outingId, actorId));
         }
         return outing;
     }
@@ -90,12 +99,17 @@ public class OutingService {
         Outing outing = loadOwned(actorId, outingId);
         engine.calculate(mapper.toSnapshot(outing));
         outing.submit();
+        events.publishEvent(new OutingActivatedEvent(outingId, outing.getCreatorId()));
         return outing;
     }
 
     public Outing cancel(Long actorId, Long outingId) {
         Outing outing = loadOwned(actorId, outingId);
+        boolean hadDebts = outing.getStatus() == OutingStatus.ACTIVE;
         outing.cancel();
+        if (hadDebts) {
+            events.publishEvent(new OutingCancelledEvent(outingId));
+        }
         return outing;
     }
 
