@@ -31,6 +31,9 @@ public class Guest {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("guest name must not be blank");
         }
+        if (name.strip().length() > 80) {
+            throw new IllegalArgumentException("guest name must be at most 80 characters");
+        }
         this.name = name.strip();
     }
 
