@@ -9,6 +9,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.kotopai.common.events.OutingUpdatedEvent;
+import com.kotopai.ledger.event.OutingActivatedEvent;
+import com.kotopai.ledger.event.OutingCancelledEvent;
 import com.kotopai.outing.domain.Guest;
 import com.kotopai.outing.domain.IllegalOutingTransitionException;
 import com.kotopai.outing.domain.Outing;
@@ -39,6 +42,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /** The ports and repositories are mocked; the mapper and the engine are the real ones. */
@@ -58,13 +62,15 @@ class OutingServiceTest {
     private FriendshipChecker friendships;
     @Mock
     private PaymentLockChecker paymentLock;
+    @Mock
+    private ApplicationEventPublisher events;
 
     private OutingService service;
 
     @BeforeEach
     void setUp() {
         service = new OutingService(outings, guests, friendships, paymentLock, new OutingSnapshotMapper(),
-            SplitEngine.withDefaults());
+            SplitEngine.withDefaults(), events);
         lenient().when(friendships.areFriends(anyLong(), anyLong())).thenReturn(true);
         lenient().when(outings.save(any(Outing.class))).thenAnswer(inv -> inv.getArgument(0));
     }
@@ -274,5 +280,57 @@ class OutingServiceTest {
             .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("twice");
         assertThatThrownBy(() -> new ParticipantKey(null, null)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new ParticipantKey(1L, 2L)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    // --- domain events (Observer) ---
+
+    @Test
+    @DisplayName("Submit publishes exactly one OutingActivatedEvent")
+    void submitPublishesActivated() {
+        draft();
+        service.updateContents(RAFSAN, OUTING_ID, burgerNight());
+
+        service.submit(RAFSAN, OUTING_ID);
+
+        verify(events).publishEvent((Object) new OutingActivatedEvent(OUTING_ID, RAFSAN));
+        verify(events, org.mockito.Mockito.times(1)).publishEvent(any(OutingActivatedEvent.class));
+    }
+
+    @Test
+    @DisplayName("A failed submit publishes nothing")
+    void failedSubmitPublishesNothing() {
+        draft();
+
+        assertThatThrownBy(() -> service.submit(RAFSAN, OUTING_ID)).isInstanceOf(EngineValidationException.class);
+
+        verify(events, never()).publishEvent(any(Object.class));
+    }
+
+    @Test
+    @DisplayName("Editing an active outing publishes OutingUpdatedEvent; editing a draft does not")
+    void updatePublishesOnlyForActive() {
+        draft();
+        service.updateContents(RAFSAN, OUTING_ID, burgerNight());
+        verify(events, never()).publishEvent(any(Object.class));
+
+        service.submit(RAFSAN, OUTING_ID);
+        service.updateContents(RAFSAN, OUTING_ID, burgerNight());
+
+        verify(events).publishEvent((Object) new OutingUpdatedEvent(OUTING_ID, RAFSAN));
+    }
+
+    @Test
+    @DisplayName("Cancelling an active outing publishes OutingCancelledEvent; cancelling a draft does not")
+    void cancelPublishesOnlyForActive() {
+        draft();
+        service.cancel(RAFSAN, OUTING_ID);
+        verify(events, never()).publishEvent(any(Object.class));
+
+        draft();
+        service.updateContents(RAFSAN, OUTING_ID, burgerNight());
+        service.submit(RAFSAN, OUTING_ID);
+        service.cancel(RAFSAN, OUTING_ID);
+
+        verify(events).publishEvent((Object) new OutingCancelledEvent(OUTING_ID));
     }
 }
