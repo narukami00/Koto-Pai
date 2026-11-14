@@ -71,4 +71,30 @@ class OutingMappingTest {
     private long shareCount() {
         return em.createQuery("select count(s) from ItemShare s", Long.class).getSingleResult();
     }
+
+    @Test
+    @DisplayName("Clearing the contents and rebuilding them saves cleanly (edit-while-draft)")
+    void clearAndRebuild() {
+        Outing outing = new Outing("Rebuild", OutingCategory.EATING, LocalDate.of(2026, 11, 6), 1L);
+        OutingParticipant rafsan = outing.addUserParticipant(1L);
+        Item pizza = outing.addItem("Pizza", new BigDecimal("500.00"), SplitType.EQUAL);
+        pizza.addShare(rafsan, null);
+        outing.addContribution(rafsan, new BigDecimal("500.00"));
+        em.persist(outing);
+        em.flush();
+        em.clear();
+
+        Outing loaded = em.find(Outing.class, outing.getId());
+        loaded.clearContents();
+        OutingParticipant tanvir = loaded.addUserParticipant(2L);
+        loaded.addItem("Tea", new BigDecimal("30.00"), SplitType.PERSONAL).addShare(tanvir, null);
+        em.flush();
+        em.clear();
+
+        Outing reloaded = em.find(Outing.class, outing.getId());
+        assertThat(reloaded.getParticipants()).extracting(OutingParticipant::getUserId).containsExactly(2L);
+        assertThat(reloaded.getItems()).extracting(Item::getName).containsExactly("Tea");
+        assertThat(reloaded.getContributions()).isEmpty();
+        assertThat(shareCount()).isEqualTo(1);
+    }
 }
