@@ -22,9 +22,11 @@ import com.kotopai.outing.service.OutingCommands.ParticipantKey;
 import com.kotopai.outing.service.OutingCommands.ShareInput;
 import com.kotopai.outing.service.OutingOperationException.Reason;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,10 +48,11 @@ public class OutingService {
     private final OutingSnapshotMapper mapper;
     private final SplitEngine engine;
     private final ApplicationEventPublisher events;
+    private final OutingAccessPolicy access;
 
     public OutingService(OutingRepository outings, GuestRepository guests, FriendshipChecker friendships,
                          PaymentLockChecker paymentLock, OutingSnapshotMapper mapper, SplitEngine engine,
-                         ApplicationEventPublisher events) {
+                         ApplicationEventPublisher events, OutingAccessPolicy access) {
         this.outings = Objects.requireNonNull(outings);
         this.guests = Objects.requireNonNull(guests);
         this.friendships = Objects.requireNonNull(friendships);
@@ -57,6 +60,19 @@ public class OutingService {
         this.mapper = Objects.requireNonNull(mapper);
         this.engine = Objects.requireNonNull(engine);
         this.events = Objects.requireNonNull(events);
+        this.access = Objects.requireNonNull(access);
+    }
+
+    /** One outing, if the actor may see it (creator, or participant once it is no longer a draft). */
+    @Transactional(readOnly = true)
+    public Outing view(Long actorId, Long outingId) {
+        return loadVisible(actorId, outingId);
+    }
+
+    /** The actor outings, newest first; pass a page request to take only the most recent ones. */
+    @Transactional(readOnly = true)
+    public List<Outing> listVisibleTo(Long actorId, Pageable pageable) {
+        return outings.findVisibleTo(Objects.requireNonNull(actorId, "actorId must not be null"), pageable);
     }
 
     /** New draft; the creator is always the first participant. */
@@ -157,13 +173,22 @@ public class OutingService {
         return participant;
     }
 
+    /**
+     * Loads an outing the actor may change. An outing the actor cannot even see is reported as not found, so its
+     * existence is not leaked; one they can see but did not create is forbidden.
+     */
     private Outing loadOwned(Long actorId, Long outingId) {
-        Objects.requireNonNull(actorId, "actorId must not be null");
-        Outing outing = outings.findById(outingId).orElseThrow(() ->
-            new OutingOperationException(Reason.NOT_FOUND, "Outing not found"));
-        if (!outing.getCreatorId().equals(actorId)) {
+        Outing outing = loadVisible(actorId, outingId);
+        if (!access.isCreator(outing, actorId)) {
             throw new OutingOperationException(Reason.FORBIDDEN, "Only the creator can change this outing");
         }
         return outing;
+    }
+
+    private Outing loadVisible(Long actorId, Long outingId) {
+        Objects.requireNonNull(actorId, "actorId must not be null");
+        return outings.findById(outingId)
+            .filter(outing -> access.canView(outing, actorId))
+            .orElseThrow(() -> new OutingOperationException(Reason.NOT_FOUND, "Outing not found"));
     }
 }

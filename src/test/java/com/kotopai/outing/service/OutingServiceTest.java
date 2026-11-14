@@ -70,7 +70,7 @@ class OutingServiceTest {
     @BeforeEach
     void setUp() {
         service = new OutingService(outings, guests, friendships, paymentLock, new OutingSnapshotMapper(),
-            SplitEngine.withDefaults(), events);
+            SplitEngine.withDefaults(), events, new OutingAccessPolicy(outings));
         lenient().when(friendships.areFriends(anyLong(), anyLong())).thenReturn(true);
         lenient().when(outings.save(any(Outing.class))).thenAnswer(inv -> inv.getArgument(0));
     }
@@ -161,14 +161,49 @@ class OutingServiceTest {
     }
 
     @Test
-    @DisplayName("Only the creator can change an outing; unknown ids are not found")
-    void creatorOnlyAndNotFound() {
+    @DisplayName("Unknown ids and outings the actor cannot see are both not found")
+    void notFoundAndInvisible() {
         draft();
 
-        assertThatThrownBy(() -> service.submit(TANVIR, OUTING_ID))
-            .isInstanceOfSatisfying(OutingOperationException.class, e -> assertThat(e.getReason()).isEqualTo(Reason.FORBIDDEN));
         assertThatThrownBy(() -> service.submit(RAFSAN, 999L))
             .isInstanceOfSatisfying(OutingOperationException.class, e -> assertThat(e.getReason()).isEqualTo(Reason.NOT_FOUND));
+        // a stranger cannot see a draft, so it does not exist for them
+        assertThatThrownBy(() -> service.submit(TANVIR, OUTING_ID))
+            .isInstanceOfSatisfying(OutingOperationException.class, e -> assertThat(e.getReason()).isEqualTo(Reason.NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("A participant can see an active outing but cannot change it")
+    void participantCanSeeButNotChange() {
+        draft();
+        service.updateContents(RAFSAN, OUTING_ID, burgerNight());
+        service.submit(RAFSAN, OUTING_ID);
+
+        assertThat(service.view(TANVIR, OUTING_ID).getTitle()).isEqualTo("Burger night");
+        assertThatThrownBy(() -> service.cancel(TANVIR, OUTING_ID))
+            .isInstanceOfSatisfying(OutingOperationException.class, e -> assertThat(e.getReason()).isEqualTo(Reason.FORBIDDEN));
+    }
+
+    @Test
+    @DisplayName("view hides drafts from participants and returns them to the creator")
+    void viewRespectsPolicy() {
+        draft();
+        service.updateContents(RAFSAN, OUTING_ID, burgerNight());
+
+        assertThat(service.view(RAFSAN, OUTING_ID)).isNotNull();
+        assertThatThrownBy(() -> service.view(TANVIR, OUTING_ID))
+            .isInstanceOfSatisfying(OutingOperationException.class, e -> assertThat(e.getReason()).isEqualTo(Reason.NOT_FOUND));
+    }
+
+    @Test
+    @DisplayName("listVisibleTo asks the repository visibility query")
+    void listDelegates() {
+        Outing o = draft();
+        org.springframework.data.domain.Pageable page = org.springframework.data.domain.PageRequest.of(0, 5);
+        when(outings.findVisibleTo(RAFSAN, page)).thenReturn(List.of(o));
+
+        assertThat(service.listVisibleTo(RAFSAN, page)).containsExactly(o);
+        assertThatThrownBy(() -> service.listVisibleTo(null, page)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
