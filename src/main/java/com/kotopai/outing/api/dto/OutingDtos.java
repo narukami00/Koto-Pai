@@ -102,4 +102,25 @@ public final class OutingDtos {
                                  List<ParticipantView> participants, List<ItemView> items,
                                  List<ContributionView> contributions) {
     }
+
+    // ---------- preview (dry run, nothing saved) ----------
+
+    public record IssueView(String code, String message) {
+    }
+
+    /** One participant row of the preview: who they are, what they consumed, paid, and their net. */
+    public record BalanceView(Long userId, Long guestId, BigDecimal consumed, BigDecimal paid, BigDecimal net) {
+    }
+
+    /** A real user net after their guests were folded in (what debts are generated from). */
+    public record UserNetView(Long userId, BigDecimal net) {
+    }
+
+    /**
+     * Preview answer. {@code valid=false} is a normal outcome while the outing is incomplete: {@code issues}
+     * lists every problem, balances are empty, and the totals still show how far off the payments are.
+     */
+    public record PreviewResponse(boolean valid, List<IssueView> issues, BigDecimal billTotal, BigDecimal paidTotal,
+                                  List<BalanceView> balances, List<UserNetView> userNets) {
+    }
 }

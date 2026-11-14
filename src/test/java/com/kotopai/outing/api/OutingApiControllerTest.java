@@ -17,7 +17,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.kotopai.outing.api.dto.OutingDtos.OutingResponse;
+import com.kotopai.outing.api.dto.OutingDtos.BalanceView;
+import com.kotopai.outing.api.dto.OutingDtos.IssueView;
 import com.kotopai.outing.api.dto.OutingDtos.OutingSummary;
+import com.kotopai.outing.api.dto.OutingDtos.PreviewResponse;
+import com.kotopai.outing.api.dto.OutingDtos.UserNetView;
 import com.kotopai.outing.domain.IllegalOutingTransitionException;
 import com.kotopai.outing.domain.OutingCategory;
 import com.kotopai.outing.domain.OutingStatus;
@@ -204,5 +208,46 @@ class OutingApiControllerTest {
             .andExpect(status().isOk()).andExpect(jsonPath("$.status").value("ACTIVE"));
         mvc.perform(delete("/api/outings/7").with(csrf())).andExpect(status().isNoContent());
         verify(facade).delete(1L, 7L);
+    }
+
+    @Test
+    @DisplayName("Preview returns the numbers for unsaved input")
+    void previewValid() throws Exception {
+        when(facade.preview(eq(1L), any())).thenReturn(new PreviewResponse(true, List.of(),
+            new BigDecimal("1900.00"), new BigDecimal("1900.00"),
+            List.of(new BalanceView(1L, null, new BigDecimal("700.00"), new BigDecimal("1400.00"), new BigDecimal("700.00"))),
+            List.of(new UserNetView(1L, new BigDecimal("700.00")))));
+
+        mvc.perform(post("/api/outings/preview").with(csrf()).contentType(JSON)
+                .content("{\"participants\":[{\"userId\":1}],\"items\":[],\"contributions\":[]}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.valid").value(true))
+            .andExpect(jsonPath("$.balances[0].net").value(700.00))
+            .andExpect(jsonPath("$.userNets[0].userId").value(1));
+    }
+
+    @Test
+    @DisplayName("Incomplete input is still a 200: valid=false and every issue listed")
+    void previewInvalidIsStill200() throws Exception {
+        when(facade.preview(eq(1L), any())).thenReturn(new PreviewResponse(false,
+            List.of(new IssueView("NO_ITEMS", "Add at least one item."), new IssueView("PAID_NOT_EQUAL_BILL", "short by 50.00")),
+            new BigDecimal("200.00"), new BigDecimal("150.00"), List.of(), List.of()));
+
+        mvc.perform(post("/api/outings/preview").with(csrf()).contentType(JSON)
+                .content("{\"participants\":[],\"items\":[],\"contributions\":[]}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.valid").value(false))
+            .andExpect(jsonPath("$.issues.length()").value(2))
+            .andExpect(jsonPath("$.balances.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("Preview needs login and still validates the body shape")
+    void previewSecurityAndShape() throws Exception {
+        mvc.perform(post("/api/outings/preview").with(anonymous()).with(csrf()).contentType(JSON).content("{}"))
+            .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/outings/preview").with(csrf()).contentType(JSON).content("{}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.errors.participants").exists());
     }
 }
