@@ -111,6 +111,14 @@ public class Outing {
         return c;
     }
 
+    /** Removes every participant, item and contribution so the body can be rebuilt (orphan removal deletes the rows). */
+    public void clearContents() {
+        requireEditable();
+        contributions.clear();
+        items.clear();
+        participants.clear();
+    }
+
     public void removeItem(Item item) {
         requireEditable();
         items.remove(item);
