@@ -12,6 +12,7 @@ import com.kotopai.outing.api.dto.OutingDtos.ItemDto;
 import com.kotopai.outing.api.dto.OutingDtos.OutingContentsRequest;
 import com.kotopai.outing.api.dto.OutingDtos.OutingResponse;
 import com.kotopai.outing.api.dto.OutingDtos.ParticipantDto;
+import com.kotopai.outing.api.dto.OutingDtos.PreviewResponse;
 import com.kotopai.outing.api.dto.OutingDtos.ShareDto;
 import com.kotopai.outing.domain.Guest;
 import com.kotopai.outing.domain.Item;
@@ -20,7 +21,14 @@ import com.kotopai.outing.domain.OutingCategory;
 import com.kotopai.outing.domain.OutingParticipant;
 import com.kotopai.outing.engine.split.SplitType;
 import com.kotopai.outing.service.OutingCommands.OutingContents;
+import com.kotopai.outing.service.OutingPreviewService;
+import com.kotopai.outing.service.OutingPreviewService.PreviewResult;
 import com.kotopai.outing.service.OutingService;
+import com.kotopai.outing.engine.SplitEngine;
+import com.kotopai.outing.engine.model.ParticipantRef;
+import com.kotopai.outing.engine.model.OutingSnapshot;
+import com.kotopai.outing.engine.validation.ValidationIssue;
+import com.kotopai.common.money.Money;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -33,7 +41,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 class OutingApiFacadeTest {
 
     private final OutingService service = mock(OutingService.class);
-    private final OutingApiFacade facade = new OutingApiFacade(service);
+    private final OutingApiFacade facade = new OutingApiFacade(service, mock(OutingPreviewService.class));
 
     private static Outing sampleOuting() {
         Outing o = new Outing("Burger night", OutingCategory.EATING, LocalDate.of(2026, 11, 14), 1L);
@@ -119,5 +127,43 @@ class OutingApiFacadeTest {
         assertThat(command.items().get(0).shares().get(0).percentage()).isEqualByComparingTo("60");
         assertThatThrownBy(() -> new ParticipantDto(1L, 2L).toKey()).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new ParticipantDto(null, null).toKey()).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("A valid preview maps per-person balances and folded user nets")
+    void mapsValidPreview() {
+        ParticipantRef rafsan = ParticipantRef.user(1);
+        ParticipantRef rahim = ParticipantRef.guest(10, 1);
+        OutingSnapshot snapshot = OutingSnapshot.builder().participants(rafsan, rahim)
+            .personalItem("Steak", "300.00", rahim).paid(rafsan, "300.00").build();
+        var result = SplitEngine.withDefaults().calculate(snapshot);
+
+        PreviewResponse response = OutingApiFacade.toPreviewResponse(
+            new PreviewResult(snapshot.billTotal(), snapshot.paidTotal(), List.of(), result));
+
+        assertThat(response.valid()).isTrue();
+        assertThat(response.billTotal()).isEqualByComparingTo("300.00");
+        assertThat(response.balances()).hasSize(2);
+        assertThat(response.balances().get(0).userId()).isEqualTo(1L);
+        assertThat(response.balances().get(0).guestId()).isNull();
+        assertThat(response.balances().get(0).net()).isEqualByComparingTo("300.00");
+        assertThat(response.balances().get(1).guestId()).isEqualTo(10L);
+        assertThat(response.balances().get(1).userId()).isNull();
+        assertThat(response.balances().get(1).net()).isEqualByComparingTo("-300.00");
+        assertThat(response.userNets()).hasSize(1);
+        assertThat(response.userNets().get(0).net()).isEqualByComparingTo("0.00");
+    }
+
+    @Test
+    @DisplayName("An invalid preview keeps the issues and totals but no balances")
+    void mapsInvalidPreview() {
+        PreviewResponse response = OutingApiFacade.toPreviewResponse(new PreviewResult(
+            Money.of(200), Money.of(150), List.of(new ValidationIssue("PAID_NOT_EQUAL_BILL", "short by 50.00")), null));
+
+        assertThat(response.valid()).isFalse();
+        assertThat(response.issues()).hasSize(1);
+        assertThat(response.issues().get(0).code()).isEqualTo("PAID_NOT_EQUAL_BILL");
+        assertThat(response.paidTotal()).isEqualByComparingTo("150.00");
+        assertThat(response.balances()).isEmpty();
     }
 }

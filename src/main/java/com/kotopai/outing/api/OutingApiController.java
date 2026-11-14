@@ -4,6 +4,7 @@ import com.kotopai.outing.api.dto.OutingDtos.CreateOutingRequest;
 import com.kotopai.outing.api.dto.OutingDtos.OutingContentsRequest;
 import com.kotopai.outing.api.dto.OutingDtos.OutingResponse;
 import com.kotopai.outing.api.dto.OutingDtos.OutingSummary;
+import com.kotopai.outing.api.dto.OutingDtos.PreviewResponse;
 import com.kotopai.outing.port.CurrentUserProvider;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -36,6 +37,12 @@ public class OutingApiController {
     public ResponseEntity<OutingResponse> create(@Valid @RequestBody CreateOutingRequest request) {
         OutingResponse created = outings.create(currentUser.currentUserId(), request);
         return ResponseEntity.created(URI.create("/api/outings/" + created.id())).body(created);
+    }
+
+    /** Live split preview: calculates unsaved input, saves nothing. Incomplete input is a normal 200 with issues. */
+    @PostMapping("/preview")
+    public PreviewResponse preview(@Valid @RequestBody OutingContentsRequest request) {
+        return outings.preview(currentUser.currentUserId(), request);
     }
 
     @GetMapping
