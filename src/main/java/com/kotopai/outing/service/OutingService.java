@@ -103,6 +103,7 @@ public class OutingService {
             outing.addContribution(resolve(byKey, input.participant(), "a payment"), input.amount());
         }
 
+        outings.flush(); // assigns ids to the new children so callers can return them
         if (outing.getStatus() == OutingStatus.ACTIVE) {
             engine.calculate(mapper.toSnapshot(outing));
             events.publishEvent(new OutingUpdatedEvent(outingId, actorId));
