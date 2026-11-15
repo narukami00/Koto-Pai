@@ -13,5 +13,7 @@ public interface GuestDebtRepository extends JpaRepository<GuestDebt, Long> {
 
 	List<GuestDebt> findAllByOwnerIdAndStatus(Long ownerId, GuestDebtStatus status);
 
+	List<GuestDebt> findAllByOwnerIdOrderByCreatedAtDesc(Long ownerId);
+
 	void deleteAllByOutingIdAndStatus(Long outingId, GuestDebtStatus status);
 }

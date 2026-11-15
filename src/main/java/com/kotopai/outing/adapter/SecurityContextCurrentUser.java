@@ -1,5 +1,6 @@
 package com.kotopai.outing.adapter;
 
+import com.kotopai.auth.service.KotopaiUserDetails;
 import com.kotopai.outing.port.CurrentUserProvider;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -9,8 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 /**
- * Temporary adapter until Member 1 authentication is on develop: the authenticated name must be the numeric user
- * id. When real users exist, replace this class with one that reads the id from the real principal.
+ * Reads the id from the application principal. Numeric test principals remain supported for MockMvc integration tests.
  */
 @Component
 public class SecurityContextCurrentUser implements CurrentUserProvider {
@@ -21,10 +21,14 @@ public class SecurityContextCurrentUser implements CurrentUserProvider {
         if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
             throw new AuthenticationCredentialsNotFoundException("Not logged in");
         }
+		if (authentication.getPrincipal() instanceof KotopaiUserDetails user) {
+			return user.getId();
+		}
         try {
             return Long.valueOf(authentication.getName());
         } catch (NumberFormatException e) {
-            throw new BadCredentialsException("Authenticated name is not a numeric user id: " + authentication.getName());
+			throw new BadCredentialsException(
+					"Authenticated name is not a numeric user id: " + authentication.getName());
         }
     }
 }

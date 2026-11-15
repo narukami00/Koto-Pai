@@ -41,6 +41,12 @@ public class Payment {
 	@Column(nullable = false, updatable = false)
 	private Instant createdAt;
 
+	@Column(name = "confirmed_by_id")
+	private Long confirmedById;
+
+	@Column(name = "confirmed_at")
+	private Instant confirmedAt;
+
 	protected Payment() {
 	}
 
@@ -56,7 +62,10 @@ public class Payment {
 	}
 
 	public static Payment confirmed(Debt debt, BigDecimal amount, Long recordedById) {
-		return new Payment(debt, amount, recordedById, PaymentStatus.CONFIRMED);
+		Payment payment = new Payment(debt, amount, recordedById, PaymentStatus.CONFIRMED);
+		payment.confirmedById = payment.recordedById;
+		payment.confirmedAt = Instant.now();
+		return payment;
 	}
 
 	@PrePersist
@@ -66,11 +75,14 @@ public class Payment {
 		}
 	}
 
-	public void confirm() {
+	public void confirm(Long actorId) {
 		if (status != PaymentStatus.PENDING_CONFIRMATION) {
 			throw new IllegalStateException("only pending payments can be confirmed");
 		}
+		long validatedActorId = LedgerAmounts.positiveId(actorId, "actorId");
 		status = PaymentStatus.CONFIRMED;
+		confirmedById = validatedActorId;
+		confirmedAt = Instant.now();
 	}
 
 	public Long getId() {
@@ -95,5 +107,13 @@ public class Payment {
 
 	public Instant getCreatedAt() {
 		return createdAt;
+	}
+
+	public Long getConfirmedById() {
+		return confirmedById;
+	}
+
+	public Instant getConfirmedAt() {
+		return confirmedAt;
 	}
 }
