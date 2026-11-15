@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 
 import org.junit.jupiter.api.Test;
 
+import com.kotopai.common.events.OutingUpdatedEvent;
 import com.kotopai.ledger.service.DebtService;
 
 class OutingDebtEventListenerTest {
@@ -15,6 +16,13 @@ class OutingDebtEventListenerTest {
 	@Test
 	void generatesDebtsWhenOutingActivates() {
 		listener.onOutingActivated(new OutingActivatedEvent(42L, 7L));
+
+		verify(debts).generateDebts(42L);
+	}
+
+	@Test
+	void regeneratesDebtsWhenCreatorResolvesByEditingOuting() {
+		listener.onOutingUpdated(new OutingUpdatedEvent(42L, 7L));
 
 		verify(debts).generateDebts(42L);
 	}

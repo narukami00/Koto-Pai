@@ -29,10 +29,13 @@ class DebtStateTest {
 	@Test
 	void disputedDebtCanOnlyReopenOrBecomeVoid() {
 		Debt debt = Debt.forOuting(50L, 10L, 20L, money("100.00"));
-		debt.dispute();
+		debt.dispute(10L, "Wrong split");
 
 		assertThat(debt.getStatus()).isEqualTo(DebtStatus.DISPUTED);
 		assertThat(debt.getStatus().contributesToBalance()).isFalse();
+		assertThat(debt.getDisputeReason()).isEqualTo("Wrong split");
+		assertThat(debt.getDisputedById()).isEqualTo(10L);
+		assertThat(debt.getDisputedAt()).isNotNull();
 
 		debt.reopen();
 		assertThat(debt.getStatus()).isEqualTo(DebtStatus.OPEN);
