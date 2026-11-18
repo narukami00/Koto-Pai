@@ -10,7 +10,7 @@
   <main class="wrap dashboard">
     <header class="page-head">
       <div>
-        <a class="back" th:href="@{/ledger(userId=${userId})}">← Balances</a>
+        <a class="back" th:href="@{/ledger}">← Balances</a>
         <h1 th:text="${'History with Friend #' + friendId}">Friend history</h1>
       </div>
     </header>
@@ -27,6 +27,18 @@
           <span class="tag" th:classappend="${debt.status.name() == 'PAID' ? ' ok' : ''}" th:text="${debt.status}">OPEN</span>
         </div>
       </article>
+    </section>
+
+    <section class="section-block">
+      <div class="section-title"><h2>Everything between you</h2><span th:text="${#lists.size(activities) + ' events'}">0 events</span></div>
+      <div class="card timeline-list">
+        <p th:if="${#lists.isEmpty(activities)}" class="empty">No payment, dispute or delegation activity yet.</p>
+        <article class="timeline-row" th:each="event : ${activities}">
+          <span class="timeline-dot"></span>
+          <div><b th:text="${event.description}">Activity</b><small th:text="${event.type + ' · ' + event.createdAt}">TYPE</small></div>
+          <strong th:if="${event.amount != null}" th:text="${'৳' + event.amount}">৳0.00</strong>
+        </article>
+      </div>
     </section>
   </main>
 </body>

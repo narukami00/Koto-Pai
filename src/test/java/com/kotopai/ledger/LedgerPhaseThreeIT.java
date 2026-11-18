@@ -23,6 +23,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.jayway.jsonpath.JsonPath;
+import com.kotopai.activity.domain.ActivityType;
+import com.kotopai.activity.repository.ActivityEventRepository;
 import com.kotopai.friend.domain.Friendship;
 import com.kotopai.friend.repository.FriendshipRepository;
 import com.kotopai.ledger.domain.Debt;
@@ -42,6 +44,7 @@ class LedgerPhaseThreeIT {
 	@Autowired DebtRepository debts;
 	@Autowired PaymentRepository payments;
 	@Autowired DelegationRepository delegations;
+	@Autowired ActivityEventRepository activities;
 	@Autowired FriendshipRepository friendships;
 	@Autowired UserRepository users;
 
@@ -53,6 +56,7 @@ class LedgerPhaseThreeIT {
 	@BeforeEach
 	void setUp() {
 		mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
+		activities.deleteAll();
 		delegations.deleteAll();
 		payments.deleteAll();
 		debts.deleteAll();
@@ -118,6 +122,8 @@ class LedgerPhaseThreeIT {
 		assertThat(debts.findById(delegatedDebtId).orElseThrow().getStatus()).isEqualTo(DebtStatus.VOID);
 		assertThat(delegations.findByDelegatedDebtId(delegatedDebtId)).isPresent()
 				.get().extracting(delegation -> delegation.getStatus()).isEqualTo(DelegationStatus.REVERSED);
+		assertThat(activities.findAll()).extracting(event -> event.getType())
+				.contains(ActivityType.DELEGATION_EXECUTED, ActivityType.DELEGATION_REVERSED);
 	}
 
 	@Test

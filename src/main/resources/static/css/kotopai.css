@@ -406,17 +406,29 @@ code { background: var(--cream); padding: 1px 6px; border-radius: 6px; }
 .history-row { justify-content: space-between; }
 .history-row > div { display: flex; flex-direction: column; }
 .history-money { align-items: flex-end; gap: 4px; }
+.head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .button.accent { border: 0; background: var(--orange); color: #fff; cursor: pointer; }
 .two-column { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 .suggestion-card { background: var(--teal); color: #fff; border-radius: 18px; padding: 20px; margin-bottom: 14px; }
 .suggestion-card > p { margin: 7px 0 14px; opacity: .84; }
 .delegation-flow { display: flex; align-items: center; gap: 9px; padding: 12px; margin-bottom: 14px; border-radius: 12px; background: rgba(255,255,255,.1); }
 .delegation-flow strong { margin-left: auto; }
+.timeline-list { padding: 0; overflow: hidden; }
+.timeline-row { display: grid; grid-template-columns: 12px 1fr auto; gap: 12px; align-items: start; padding: 17px 20px; border-bottom: 1px solid var(--line); }
+.timeline-row:last-child { border-bottom: 0; }
+.timeline-row > div { display: flex; flex-direction: column; }
+.timeline-row small { color: var(--muted); }
+.timeline-dot { width: 10px; height: 10px; margin-top: 6px; border-radius: 50%; background: var(--orange); box-shadow: 0 0 0 4px #f7e5d2; }
+.filter-bar { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: end; margin-bottom: 18px; }
+.filter-bar label { display: flex; flex-direction: column; gap: 5px; color: var(--muted); font-size: 13px; font-weight: 700; }
+.filter-bar input, .filter-bar select { min-height: 42px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); }
 .notice { padding: 12px 15px; margin-bottom: 16px; border-radius: 12px; background: #d7ecd2; color: var(--green-ink); font-weight: 700; }
 @media (max-width: 560px) {
   .wrap { padding-top: 24px; }
   .page-head { align-items: flex-start; }
   .hero { border-radius: 20px; }
   .balance-row, .history-row { padding: 14px; }
-  .two-column { grid-template-columns: 1fr; }
+  .two-column, .filter-bar { grid-template-columns: 1fr; }
+  .timeline-row { grid-template-columns: 12px 1fr; }
+  .timeline-row > strong { grid-column: 2; }
 }

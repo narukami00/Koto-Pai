@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -335,6 +336,7 @@ class OutingServiceTest {
     @DisplayName("A failed submit publishes nothing")
     void failedSubmitPublishesNothing() {
         draft();
+        clearInvocations(events);
 
         assertThatThrownBy(() -> service.submit(RAFSAN, OUTING_ID)).isInstanceOf(EngineValidationException.class);
 
@@ -345,6 +347,7 @@ class OutingServiceTest {
     @DisplayName("Editing an active outing publishes OutingUpdatedEvent; editing a draft does not")
     void updatePublishesOnlyForActive() {
         draft();
+        clearInvocations(events);
         service.updateContents(RAFSAN, OUTING_ID, burgerNight());
         verify(events, never()).publishEvent(any(Object.class));
 
@@ -358,10 +361,12 @@ class OutingServiceTest {
     @DisplayName("Cancelling an active outing publishes OutingCancelledEvent; cancelling a draft does not")
     void cancelPublishesOnlyForActive() {
         draft();
+        clearInvocations(events);
         service.cancel(RAFSAN, OUTING_ID);
         verify(events, never()).publishEvent(any(Object.class));
 
         draft();
+        clearInvocations(events);
         service.updateContents(RAFSAN, OUTING_ID, burgerNight());
         service.submit(RAFSAN, OUTING_ID);
         service.cancel(RAFSAN, OUTING_ID);
