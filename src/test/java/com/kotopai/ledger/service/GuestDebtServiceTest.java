@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.kotopai.ledger.domain.GuestDebt;
@@ -22,12 +23,13 @@ import com.kotopai.ledger.repository.GuestDebtRepository;
 class GuestDebtServiceTest {
 
 	@Mock GuestDebtRepository guestDebts;
+	@Mock ApplicationEventPublisher events;
 
 	private GuestDebtService service;
 
 	@BeforeEach
 	void setUp() {
-		service = new GuestDebtService(guestDebts);
+		service = new GuestDebtService(guestDebts, events);
 	}
 
 	@Test

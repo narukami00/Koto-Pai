@@ -4,8 +4,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.kotopai.ledger.domain.GuestDebt;
+import com.kotopai.ledger.event.GuestDebtSettledEvent;
 import com.kotopai.ledger.repository.GuestDebtRepository;
 import com.kotopai.ledger.service.LedgerOperationException.Reason;
 
@@ -13,9 +15,11 @@ import com.kotopai.ledger.service.LedgerOperationException.Reason;
 public class GuestDebtService {
 
 	private final GuestDebtRepository guestDebts;
+	private final ApplicationEventPublisher events;
 
-	public GuestDebtService(GuestDebtRepository guestDebts) {
+	public GuestDebtService(GuestDebtRepository guestDebts, ApplicationEventPublisher events) {
 		this.guestDebts = guestDebts;
+		this.events = events;
 	}
 
 	@Transactional(readOnly = true)
@@ -38,6 +42,8 @@ public class GuestDebtService {
 			throw new LedgerOperationException(Reason.CONFLICT, exception.getMessage());
 		}
 		guestDebts.flush();
+		events.publishEvent(new GuestDebtSettledEvent(
+				debt.getId(), debt.getOutingId(), debt.getGuestId(), debt.getOwnerId(), debt.getAmount()));
 		return GuestDebtResult.from(debt);
 	}
 }

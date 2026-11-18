@@ -158,13 +158,13 @@ class LedgerPhaseOneIT {
 	void rendersLedgerAndFriendHistoryTemplates() throws Exception {
 		debts.save(Debt.forOuting(1L, 2L, 1L, money("100.00")));
 
-		mvc.perform(get("/ledger").param("userId", "1").with(user("test-user")))
+		mvc.perform(get("/ledger").with(user("1")))
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString("Net balance")))
 				.andExpect(content().string(containsString("Friend #2")))
 				.andExpect(content().string(containsString("৳100.00")));
 
-		mvc.perform(get("/ledger/friends/2").param("userId", "1").with(user("test-user")))
+		mvc.perform(get("/ledger/friends/2").with(user("1")))
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString("History with Friend #2")))
 				.andExpect(content().string(containsString("Friend #2 → You")));
