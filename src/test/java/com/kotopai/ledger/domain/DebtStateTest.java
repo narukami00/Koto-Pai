@@ -50,6 +50,30 @@ class DebtStateTest {
 				.hasMessageContaining("exceed");
 	}
 
+	@Test
+	void delegationReversalRestoresTheOriginalOpenState() {
+		Debt debt = Debt.forOuting(50L, 10L, 20L, money("100.00"));
+
+		debt.reduceForDelegation(money("100.00"));
+		assertThat(debt.getStatus()).isEqualTo(DebtStatus.PAID);
+
+		debt.restoreFromDelegation(money("100.00"));
+		assertThat(debt.getStatus()).isEqualTo(DebtStatus.OPEN);
+		assertThat(debt.getRemaining()).isEqualByComparingTo("100.00");
+	}
+
+	@Test
+	void delegationReversalPreservesEarlierPartialPayments() {
+		Debt debt = Debt.forOuting(50L, 10L, 20L, money("100.00"));
+		debt.applyConfirmedPayment(money("20.00"));
+		debt.reduceForDelegation(money("30.00"));
+
+		debt.restoreFromDelegation(money("30.00"));
+
+		assertThat(debt.getStatus()).isEqualTo(DebtStatus.PARTIALLY_PAID);
+		assertThat(debt.getRemaining()).isEqualByComparingTo("80.00");
+	}
+
 	private static BigDecimal money(String amount) {
 		return new BigDecimal(amount);
 	}
