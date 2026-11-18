@@ -17,7 +17,7 @@ public class LedgerApiSecurityConfig {
 		http
 				.securityMatcher(
 						"/api/ledger/**", "/api/debts/**", "/api/payments/**", "/api/guest-debts/**",
-						"/api/delegations/**")
+						"/api/delegations/**", "/api/activity/**")
 				.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
 				.exceptionHandling(configurer -> configurer
 						.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));

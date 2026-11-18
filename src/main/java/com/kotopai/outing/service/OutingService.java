@@ -1,6 +1,7 @@
 package com.kotopai.outing.service;
 
 import com.kotopai.common.events.OutingUpdatedEvent;
+import com.kotopai.common.events.OutingCreatedEvent;
 import com.kotopai.ledger.event.OutingActivatedEvent;
 import com.kotopai.ledger.event.OutingCancelledEvent;
 import com.kotopai.outing.domain.Guest;
@@ -80,7 +81,9 @@ public class OutingService {
         Objects.requireNonNull(actorId, "actorId must not be null");
         Outing outing = new Outing(command.title(), command.category(), command.date(), actorId);
         outing.addUserParticipant(actorId);
-        return outings.save(outing);
+		Outing created = outings.save(outing);
+		events.publishEvent(new OutingCreatedEvent(created.getId(), actorId, created.getTitle()));
+		return created;
     }
 
     /**
