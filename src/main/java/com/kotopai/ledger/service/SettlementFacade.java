@@ -19,10 +19,27 @@ public class SettlementFacade {
 
 	private final DebtSimplifier simplifier;
 	private final DebtService debtService;
+	private final DelegationService delegations;
 
-	public SettlementFacade(DebtSimplifier simplifier, DebtService debtService) {
+	public SettlementFacade(
+			DebtSimplifier simplifier,
+			DebtService debtService,
+			DelegationService delegations) {
 		this.simplifier = simplifier;
 		this.debtService = debtService;
+		this.delegations = delegations;
+	}
+
+	public List<com.kotopai.ledger.DelegationSuggestion> delegationSuggestions(long actorId) {
+		return delegations.suggestions(actorId);
+	}
+
+	public DelegationResult delegate(
+			long actorId,
+			long incomingDebtId,
+			long outgoingDebtId,
+			BigDecimal amount) {
+		return delegations.execute(actorId, incomingDebtId, outgoingDebtId, amount);
 	}
 
 	public List<Transfer> simplify(List<NetPosition> positions) {
