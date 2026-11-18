@@ -60,7 +60,7 @@ Request DTOs validate positive IDs, positive amounts, two-decimal precision, and
 
 ## Test evidence
 
-The complete Maven lifecycle passed on 18 November 2026 with 516 unit tests and 42 integration tests. The integration suite includes `ConcurrentPaymentIT`, which proves that two simultaneous ৳60 attempts against a ৳100 debt result in one payment and ৳40 remaining.
+The complete Maven lifecycle passed on 18 November 2026 with 522 unit tests and 42 integration tests. The integration suite includes `ConcurrentPaymentIT`, which proves that two simultaneous ৳60 attempts against a ৳100 debt result in one payment and ৳40 remaining.
 
 Member 3 coverage includes:
 
