@@ -1,13 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Koto Pai</title>
-  <link rel="stylesheet" th:href="@{/css/kotopai.css}">
-</head>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page('Home', 'home', ~{::main})}">
 <body>
-  <main class="wrap dashboard">
+  <main class="dashboard">
     <header class="page-head">
       <div>
         <h1 class="brand">Koto <span>Pai?</span></h1>
