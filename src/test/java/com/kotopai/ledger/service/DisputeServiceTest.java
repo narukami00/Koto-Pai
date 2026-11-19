@@ -29,12 +29,13 @@ class DisputeServiceTest {
 	@Mock DebtRepository debts;
 	@Mock OutingLedgerGateway outings;
 	@Mock ApplicationEventPublisher events;
+	@Mock DelegationService delegations;
 
 	private DisputeService service;
 
 	@BeforeEach
 	void setUp() {
-		service = new DisputeService(debts, outings, events);
+		service = new DisputeService(debts, outings, events, delegations);
 	}
 
 	@Test
