@@ -10,5 +10,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
 	boolean existsByDebtOutingId(Long outingId);
 
+	boolean existsByDebtId(Long debtId);
+
 	List<Payment> findAllByDebtIdOrderByCreatedAtDesc(Long debtId);
 }
