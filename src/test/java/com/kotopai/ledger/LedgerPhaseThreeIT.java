@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.math.BigDecimal;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,10 +70,19 @@ class LedgerPhaseThreeIT {
 		friendships.saveAndFlush(outerUsers);
 	}
 
+	@AfterEach
+	void tearDown() {
+		delegations.deleteAll();
+		payments.deleteAll();
+		debts.deleteAll();
+		friendships.deleteAll();
+		users.deleteAll();
+	}
+
 	@Test
 	void delegatesImmediatelyAndDisputeReversesEveryDebtAndTimelineEntry() throws Exception {
-		Debt incoming = debts.saveAndFlush(Debt.forOuting(11L, debtorId, middlemanId, money("100.00")));
-		Debt outgoing = debts.saveAndFlush(Debt.forOuting(12L, middlemanId, creditorId, money("50.00")));
+		Debt incoming = debts.saveAndFlush(Debt.forOuting(90011L, debtorId, middlemanId, money("100.00")));
+		Debt outgoing = debts.saveAndFlush(Debt.forOuting(90012L, middlemanId, creditorId, money("50.00")));
 
 		String body = "{\"incomingDebtId\":" + incoming.getId()
 				+ ",\"outgoingDebtId\":" + outgoing.getId() + ",\"amount\":30.00}";
@@ -112,8 +122,8 @@ class LedgerPhaseThreeIT {
 
 	@Test
 	void onlyMiddlemanCanExecuteAndAuthenticationIsRequired() throws Exception {
-		Debt incoming = debts.saveAndFlush(Debt.forOuting(11L, debtorId, middlemanId, money("40.00")));
-		Debt outgoing = debts.saveAndFlush(Debt.forOuting(12L, middlemanId, creditorId, money("40.00")));
+		Debt incoming = debts.saveAndFlush(Debt.forOuting(90011L, debtorId, middlemanId, money("40.00")));
+		Debt outgoing = debts.saveAndFlush(Debt.forOuting(90012L, middlemanId, creditorId, money("40.00")));
 		String body = "{\"incomingDebtId\":" + incoming.getId()
 				+ ",\"outgoingDebtId\":" + outgoing.getId() + ",\"amount\":20.00}";
 
