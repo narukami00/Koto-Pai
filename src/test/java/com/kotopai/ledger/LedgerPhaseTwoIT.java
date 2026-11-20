@@ -59,6 +59,8 @@ class LedgerPhaseTwoIT {
 	@BeforeEach
 	void setUp() {
 		mvc = MockMvcBuilders.webAppContextSetup(context).apply(springSecurity()).build();
+		payments.deleteAll();
+		debts.deleteAll();
 	}
 
 	@Test
