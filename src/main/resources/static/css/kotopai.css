@@ -330,6 +330,8 @@ svg.i {
   background: #fff;
 }
 .help { font-size: 12.5px; color: var(--muted); }
+.profile { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 10px 0 4px; }
+.profile .av { width: 84px; height: 84px; font-size: 30px; margin-bottom: 10px; }
 
 /* ---------- existing standalone & ledger page classes (preserved) ---------- */
 .wrap { max-width: 560px; margin: 0 auto; padding: 48px 16px; }
