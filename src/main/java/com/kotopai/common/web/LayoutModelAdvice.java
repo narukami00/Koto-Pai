@@ -1,5 +1,6 @@
 package com.kotopai.common.web;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -7,6 +8,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import com.kotopai.auth.service.KotopaiUserDetails;
+import com.kotopai.notification.service.NotificationService;
 
 /**
  * Populates shared layout model attributes for Thymeleaf views without extra database queries.
@@ -15,6 +17,35 @@ import com.kotopai.auth.service.KotopaiUserDetails;
 public class LayoutModelAdvice {
 
     private static final String DEFAULT_AVATAR_COLOR = "#18604B";
+
+    private final NotificationService notificationService;
+
+    public LayoutModelAdvice() {
+        this(null);
+    }
+
+    public LayoutModelAdvice(@Autowired(required = false) NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    @ModelAttribute("unreadNotificationCount")
+    public Long unreadNotificationCount() {
+        if (notificationService == null) {
+            return 0L;
+        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
+            return 0L;
+        }
+        if (auth.getPrincipal() instanceof KotopaiUserDetails user) {
+            try {
+                return notificationService.getUnreadCount(user.getId());
+            } catch (Exception ignored) {
+                return 0L;
+            }
+        }
+        return 0L;
+    }
 
     @ModelAttribute("navUser")
     public NavUserView currentNavUser() {
