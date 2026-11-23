@@ -22,6 +22,7 @@ import com.kotopai.common.exception.ForbiddenException;
 import com.kotopai.common.exception.ResourceNotFoundException;
 import com.kotopai.friend.domain.Friendship;
 import com.kotopai.friend.domain.FriendshipStatus;
+import com.kotopai.friend.dto.FriendRequestSummary;
 import com.kotopai.friend.repository.FriendshipRepository;
 import com.kotopai.user.domain.Role;
 import com.kotopai.user.domain.User;
@@ -83,6 +84,47 @@ class FriendServiceTest {
 
         assertThat(friends).hasSize(2);
         assertThat(friends).extracting(UserSummary::userCode).containsExactly("tanvir01", "nabila02");
+    }
+
+    @Test
+    @DisplayName("pendingRequestsFor returns incoming pending requests for addressee")
+    void pendingRequestsFor_success() {
+        User requester = createUser(2L, "tanvir01", "Tanvir");
+        User addressee = createUser(1L, "rafsan10", "Rafsan");
+
+        Friendship pending = new Friendship(requester, addressee);
+        ReflectionTestUtils.setField(pending, "id", 55L);
+
+        when(friendshipRepository.findPendingRequestsForAddressee(1L)).thenReturn(List.of(pending));
+
+        List<FriendRequestSummary> requests = friendService.pendingRequestsFor(1L);
+
+        assertThat(requests).hasSize(1);
+        assertThat(requests.get(0).friendshipId()).isEqualTo(55L);
+        assertThat(requests.get(0).requesterId()).isEqualTo(2L);
+        assertThat(requests.get(0).userCode()).isEqualTo("tanvir01");
+        assertThat(requests.get(0).displayName()).isEqualTo("Tanvir");
+        assertThat(requests.get(0).getInitial()).isEqualTo("T");
+    }
+
+    @Test
+    @DisplayName("sendFriendRequest successfully strips leading @ symbol and normalizes code")
+    void sendFriendRequest_withAtPrefix() {
+        User requester = createUser(1L, "rafsan10", "Rafsan");
+        User addressee = createUser(2L, "tanvir01", "Tanvir");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(requester));
+        when(userRepository.findByUserCode("tanvir01")).thenReturn(Optional.of(addressee));
+        when(friendshipRepository.findBetween(1L, 2L)).thenReturn(Optional.empty());
+
+        Friendship saved = new Friendship(requester, addressee);
+        ReflectionTestUtils.setField(saved, "id", 101L);
+        when(friendshipRepository.save(any(Friendship.class))).thenReturn(saved);
+
+        Long friendshipId = friendService.sendFriendRequest(1L, "  @Tanvir01  ");
+
+        assertThat(friendshipId).isEqualTo(101L);
+        verify(userRepository).findByUserCode("tanvir01");
     }
 
     @Test

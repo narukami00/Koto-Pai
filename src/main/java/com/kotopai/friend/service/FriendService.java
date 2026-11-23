@@ -2,6 +2,7 @@ package com.kotopai.friend.service;
 
 import java.util.List;
 
+import com.kotopai.friend.dto.FriendRequestSummary;
 import com.kotopai.user.dto.UserSummary;
 
 /**
@@ -28,6 +29,14 @@ public interface FriendService {
      * @return list of UserSummary projections for accepted friends
      */
     List<UserSummary> friendsOf(Long userId);
+
+    /**
+     * Returns all pending incoming friend requests for an addressee user.
+     *
+     * @param userId user's ID (the addressee)
+     * @return list of pending friend request summaries
+     */
+    List<FriendRequestSummary> pendingRequestsFor(Long userId);
 
     /**
      * Sends a friend request to a target user identified by public userCode.
