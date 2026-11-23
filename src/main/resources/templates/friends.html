@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page('Friends', 'friends', ~{::main})}">
+<head>
+  <title>Friends · Koto Pai</title>
+</head>
+<body>
+<main class="page-friends">
+  <!-- Header -->
+  <div class="head">
+    <div>
+      <h1>Friends</h1>
+      <p>Add people by their user ID.</p>
+    </div>
+  </div>
+
+  <!-- Search / Add Friend Form -->
+  <form th:action="@{/friends/request}" method="post" class="searchbox" style="margin-bottom: 20px;">
+    <input type="text" name="userCode" placeholder="Search by user ID, e.g. @tanvir_h" required autocomplete="off" />
+    <button type="submit" class="btn" title="Send Friend Request">
+      <svg class="i"><use href="#i-search"/></svg>
+      <span>Add Friend</span>
+    </button>
+  </form>
+
+  <!-- Requests Section -->
+  <div class="sec">
+    <h2>
+      Requests
+      <span th:if="${not #lists.isEmpty(pendingRequests)}"
+            class="tag warn"
+            th:text="${#lists.size(pendingRequests)}">1</span>
+    </h2>
+  </div>
+
+  <div class="card" th:if="${not #lists.isEmpty(pendingRequests)}">
+    <div th:each="req : ${pendingRequests}" class="row" style="align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="av"
+             th:style="${req.avatarColor != null} ? 'background-color:' + ${req.avatarColor} + '; color:#fff;' : ''"
+             th:text="${req.initial}">F</div>
+        <div class="grow">
+          <b th:text="${req.displayName}">Farhan</b>
+          <small style="display: block; color: var(--muted);" th:text="${'@' + req.userCode + ' wants to be friends'}">@farhan_k wants to be friends</small>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <form th:action="@{/friends/{id}/accept(id=${req.friendshipId})}" method="post" style="display: inline;">
+          <button type="submit" class="btn sm">Accept</button>
+        </form>
+        <form th:action="@{/friends/{id}/reject(id=${req.friendshipId})}" method="post" style="display: inline;">
+          <button type="submit" class="btn sm line" style="color: var(--muted);">Reject</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="card empty" th:if="${#lists.isEmpty(pendingRequests)}">
+    <p>No pending friend requests.</p>
+  </div>
+
+  <!-- Your Friends Section -->
+  <div class="sec" style="margin-top: 24px;">
+    <h2>Your friends</h2>
+  </div>
+
+  <div class="card" th:if="${not #lists.isEmpty(friends)}">
+    <div th:each="friend : ${friends}" class="row" style="align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="av"
+             th:style="${friend.avatarColor != null} ? 'background-color:' + ${friend.avatarColor} + '; color:#fff;' : ''"
+             th:text="${friend.initial}">N</div>
+        <div class="grow">
+          <a th:href="@{/ledger/friends/{friendId}(friendId=${friend.id}, userId=${currentUserId})}"
+             style="text-decoration: none; color: inherit;">
+            <b th:text="${friend.displayName}">Nabila</b>
+            <small style="display: block; color: var(--muted);" th:text="${'@' + friend.userCode}">@nabila_r</small>
+          </a>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <!-- Balance chip -->
+        <a th:href="@{/ledger/friends/{friendId}(friendId=${friend.id}, userId=${currentUserId})}"
+           style="text-decoration: none;">
+          <div th:if="${friend.balance != null and friend.balance.signum() > 0}"
+               class="amt get"
+               th:text="${'+৳' + friend.balance}">+৳400</div>
+          <div th:if="${friend.balance != null and friend.balance.signum() < 0}"
+               class="amt owe"
+               th:text="${'−৳' + friend.balance.abs()}">−৳350</div>
+          <div th:if="${friend.balance == null or friend.balance.signum() == 0}"
+               class="tag ok"
+               style="font-size: 12px;">Settled</div>
+        </a>
+
+        <!-- Remove friend form -->
+        <form th:action="@{/friends/{friendId}/remove(friendId=${friend.id})}"
+              method="post"
+              onsubmit="return confirm('Are you sure you want to remove this friend?');"
+              style="display: inline;">
+          <button type="submit"
+                  class="btn sm line"
+                  style="border: none; padding: 4px 8px; color: var(--muted); cursor: pointer;"
+                  title="Remove friend">✕</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="card empty" th:if="${#lists.isEmpty(friends)}">
+    <p>You haven't added any friends yet.</p>
+    <small style="color: var(--muted);">Search for their @userCode above to send a friend request!</small>
+  </div>
+</main>
+</body>
+</html>
+

@@ -11,6 +11,7 @@ import com.kotopai.common.exception.ForbiddenException;
 import com.kotopai.common.exception.ResourceNotFoundException;
 import com.kotopai.friend.domain.Friendship;
 import com.kotopai.friend.domain.FriendshipStatus;
+import com.kotopai.friend.dto.FriendRequestSummary;
 import com.kotopai.friend.repository.FriendshipRepository;
 import com.kotopai.user.domain.User;
 import com.kotopai.user.dto.UserSummary;
@@ -54,6 +55,16 @@ public class DefaultFriendService implements FriendService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<FriendRequestSummary> pendingRequestsFor(Long userId) {
+        Objects.requireNonNull(userId, "userId must not be null");
+        List<Friendship> pending = friendshipRepository.findPendingRequestsForAddressee(userId);
+        return pending.stream()
+                .map(FriendRequestSummary::from)
+                .toList();
+    }
+
+    @Override
     public Long sendFriendRequest(Long requesterId, String targetUserCode) {
         Objects.requireNonNull(requesterId, "requesterId must not be null");
         if (targetUserCode == null || targetUserCode.isBlank()) {
@@ -63,7 +74,11 @@ public class DefaultFriendService implements FriendService {
         User requester = userRepository.findById(requesterId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", requesterId));
 
-        String normalizedCode = targetUserCode.trim().toLowerCase();
+        String normalizedCode = targetUserCode.trim();
+        if (normalizedCode.startsWith("@")) {
+            normalizedCode = normalizedCode.substring(1).trim();
+        }
+        normalizedCode = normalizedCode.toLowerCase();
         User addressee = userRepository.findByUserCode(normalizedCode)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "userCode", targetUserCode));
 
