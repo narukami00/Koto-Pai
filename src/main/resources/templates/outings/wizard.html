@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(${pageTitle}, 'new', ~{::main})}">
+<head>
+  <title>New outing · Koto Pai</title>
+</head>
+<body>
+<main class="page-wizard">
+  <a class="back" th:href="${outingId != null} ? @{/outings/{id}(id=${outingId})} : @{/outings}">← Back</a>
+
+  <div class="head">
+    <div>
+      <h1 th:text="${outingId != null} ? 'Edit outing' : 'New outing'">New outing</h1>
+      <p>Add what was ordered, who shared it and who paid. The split updates as you type.</p>
+    </div>
+  </div>
+
+  <div id="wizard" th:attr="data-outing-id=${outingId}, data-me-id=${meId}, data-me-name=${meName}">
+    <input type="hidden" id="csrf-token" th:value="${_csrf.token}">
+
+    <div id="wiz-errors" class="banner err" hidden></div>
+
+    <!-- 1. Basics -->
+    <section class="card wiz-card">
+      <h2>1 · The outing</h2>
+      <label class="field"><span>Title</span>
+        <input type="text" id="wiz-title" maxlength="120" placeholder="e.g. Burger night" autocomplete="off"></label>
+      <div class="wiz-two">
+        <label class="field"><span>Category</span>
+          <select id="wiz-category">
+            <option value="EATING">Eating</option><option value="TRAVEL">Travel</option>
+            <option value="ADVENTURE">Adventure</option><option value="ENTERTAINMENT">Entertainment</option>
+            <option value="OTHER">Other</option>
+          </select></label>
+        <label class="field"><span>Date</span><input type="date" id="wiz-date"></label>
+      </div>
+    </section>
+
+    <!-- 2. People -->
+    <section class="card wiz-card">
+      <h2>2 · Who came?</h2>
+      <p class="help">You are always on the outing. Tap friends to add them.</p>
+      <div id="wiz-people" class="chips"></div>
+      <div class="sec-mini">Guests <small class="help">people without an account; you settle for them</small></div>
+      <div id="wiz-guests" class="chips"></div>
+      <div class="searchbox" style="margin-top: 10px;">
+        <input type="text" id="wiz-guest-name" maxlength="80" placeholder="Add a guest, e.g. Rahim" autocomplete="off">
+        <button type="button" class="btn sm" id="wiz-add-guest">Add guest</button>
+      </div>
+    </section>
+
+    <!-- 3. Items -->
+    <section class="card wiz-card">
+      <h2>3 · What was ordered?</h2>
+      <div id="wiz-items"></div>
+      <button type="button" class="btn line" id="wiz-add-item" style="margin-top: 10px;">+ Add item</button>
+    </section>
+
+    <!-- 4. Payments -->
+    <section class="card wiz-card">
+      <h2>4 · Who paid?</h2>
+      <p class="help">Enter what each person actually paid. Together it must equal the bill.</p>
+      <div id="wiz-paid"></div>
+    </section>
+
+    <!-- 5. Live split -->
+    <section class="card wiz-card">
+      <h2>5 · The split</h2>
+      <div class="wiz-totals">
+        <div><small>Bill</small><b id="wiz-bill">৳0.00</b></div>
+        <div><small>Paid</small><b id="wiz-paidtotal">৳0.00</b></div>
+        <div><small>Difference</small><b id="wiz-diff">৳0.00</b></div>
+      </div>
+      <div id="wiz-preview" class="wiz-preview"></div>
+    </section>
+
+    <div class="wiz-actions">
+      <button type="button" class="btn line" id="wiz-save">Save draft</button>
+      <button type="button" class="btn" id="wiz-submit">Save and split</button>
+    </div>
+  </div>
+  <script th:src="@{/js/outing-wizard.js}" defer></script>
+</main>
+</body>
+</html>

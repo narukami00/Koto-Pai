@@ -74,7 +74,7 @@ class OutingPageControllerTest {
 
     private static OutingDetail detail(boolean calculated, boolean actions) {
         return new OutingDetail(7L, "Burger night", OutingCategory.EATING, LocalDate.of(2026, 11, 24), OutingStatus.DRAFT,
-            "Rafsan", true, actions, actions, actions, new BigDecimal("1900.00"), new BigDecimal("1900.00"),
+            "Rafsan", true, actions, actions, actions, actions, new BigDecimal("1900.00"), new BigDecimal("1900.00"),
             List.of(new ItemRow("Large pizza", new BigDecimal("1000.00"), "By percentage", "Rafsan 50%, Tanvir 50%")),
             List.of(new PersonRow("Rafsan", "R", "#18604B", false, "@rafsan10",
                 calculated ? new BigDecimal("500.00") : null, calculated ? new BigDecimal("1900.00") : null,
@@ -119,7 +119,8 @@ class OutingPageControllerTest {
             .andExpect(content().string(containsString("+৳700.00")))
             .andExpect(content().string(containsString("Rafsan 50%, Tanvir 50%")))
             .andExpect(content().string(containsString("Submit and split")))
-            .andExpect(content().string(containsString("Cancel outing")));
+            .andExpect(content().string(containsString("Cancel outing")))
+            .andExpect(content().string(containsString("/outings/7/edit")));
     }
 
     @Test

@@ -77,8 +77,9 @@
   </div>
 
   <!-- Actions (creator only) -->
-  <div class="card" th:if="${outing.canSubmit or outing.canCancel or outing.canDelete}" style="margin-top: 16px;">
+  <div class="card" th:if="${outing.canEdit or outing.canSubmit or outing.canCancel or outing.canDelete}" style="margin-top: 16px;">
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <a th:if="${outing.canEdit}" class="btn line" th:href="@{/outings/{id}/edit(id=${outing.id})}">Edit</a>
       <form th:if="${outing.canSubmit}" th:action="@{/outings/{id}/submit(id=${outing.id})}" method="post">
         <button type="submit" class="btn" th:disabled="${not outing.calculated}">Submit and split</button>
       </form>
