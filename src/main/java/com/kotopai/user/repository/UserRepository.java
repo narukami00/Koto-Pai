@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.kotopai.user.domain.Role;
 import com.kotopai.user.domain.User;
 
 /**
@@ -18,5 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByUserCode(String userCode);
 
     boolean existsByEmail(String email);
+
+    long countByRole(Role role);
 }
 

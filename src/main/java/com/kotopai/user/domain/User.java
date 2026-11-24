@@ -82,6 +82,10 @@ public class User extends BaseEntity {
         this.passwordHash = validatePasswordHash(newPasswordHash);
     }
 
+    public void changeRole(Role newRole) {
+        this.role = Objects.requireNonNull(newRole, "role must not be null");
+    }
+
     private static String validateUserCode(String code) {
         if (code == null || code.isBlank()) {
             throw new IllegalArgumentException("userCode must not be blank");

@@ -57,6 +57,7 @@ public class DevDataInitializer implements CommandLineRunner {
         User tanvir = userRepository.save(new User("tanvir_h", "Tanvir", "tanvir@example.com", passwordHash, Role.USER));
         User nabila = userRepository.save(new User("nabila_r", "Nabila", "nabila@example.com", passwordHash, Role.USER));
         User samiha = userRepository.save(new User("samiha", "Samiha", "samiha@example.com", passwordHash, Role.USER));
+        User admin = userRepository.save(new User("admin", "Administrator", "admin@kotopai.com", passwordHash, Role.ADMIN));
 
         List<Friendship> mutualFriendships = List.of(
                 acceptedFriendship(rafsan, tanvir),

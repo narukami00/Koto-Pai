@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="page(title, activeNav, content)">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="page(title, activeNav, content)">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -20,6 +20,7 @@
     <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
     <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
   </svg>
 
   <div class="shell">
@@ -44,6 +45,9 @@
       </a>
       <a class="tab" th:classappend="${activeNav == 'profile'} ? ' on'" th:href="@{/profile}">
         <svg class="i"><use href="#i-user"/></svg>Profile
+      </a>
+      <a sec:authorize="hasRole('ADMIN')" class="tab" th:classappend="${activeNav == 'admin'} ? ' on'" th:href="@{/admin}">
+        <svg class="i"><use href="#i-shield"/></svg>Admin
       </a>
 
       <div class="side-foot">
