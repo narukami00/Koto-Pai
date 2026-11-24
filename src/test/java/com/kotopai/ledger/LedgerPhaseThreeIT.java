@@ -76,6 +76,7 @@ class LedgerPhaseThreeIT {
 
 	@AfterEach
 	void tearDown() {
+		activities.deleteAll();
 		delegations.deleteAll();
 		payments.deleteAll();
 		debts.deleteAll();
@@ -124,6 +125,9 @@ class LedgerPhaseThreeIT {
 				.get().extracting(delegation -> delegation.getStatus()).isEqualTo(DelegationStatus.REVERSED);
 		assertThat(activities.findAll()).extracting(event -> event.getType())
 				.contains(ActivityType.DELEGATION_EXECUTED, ActivityType.DELEGATION_REVERSED);
+		getAs(debtorId, "/api/activity?friendId=" + creditorId + "&type=DELEGATION_EXECUTED")
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$[0].type").value("DELEGATION_EXECUTED"));
 	}
 
 	@Test
@@ -136,6 +140,8 @@ class LedgerPhaseThreeIT {
 		postAs(debtorId, "/api/delegations", body).andExpect(status().isForbidden());
 		mvc.perform(post("/api/delegations").with(csrf())
 				.contentType(MediaType.APPLICATION_JSON).content(body))
+				.andExpect(status().isUnauthorized());
+		mvc.perform(get("/api/activity"))
 				.andExpect(status().isUnauthorized());
 	}
 

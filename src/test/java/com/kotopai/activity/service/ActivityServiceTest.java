@@ -48,7 +48,10 @@ class ActivityServiceTest {
 	}
 
 	@Test
-	void rejectsUsingTheCurrentUserAsFriendFilter() {
+	void rejectsInvalidUserAndFriendFilters() {
+		assertThatThrownBy(() -> service.timeline(0L, null, null))
+				.isInstanceOf(IllegalArgumentException.class)
+				.hasMessageContaining("userId");
 		assertThatThrownBy(() -> service.timeline(1L, 1L, null))
 				.isInstanceOf(IllegalArgumentException.class)
 				.hasMessageContaining("another user");
