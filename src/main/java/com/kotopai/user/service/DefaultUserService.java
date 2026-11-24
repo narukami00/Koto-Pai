@@ -63,6 +63,15 @@ public class DefaultUserService implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    public java.util.Map<Long, UserSummary> summariesOf(java.util.Collection<Long> userIds) {
+        Objects.requireNonNull(userIds, "userIds must not be null");
+        java.util.Map<Long, UserSummary> result = new java.util.HashMap<>();
+        userRepository.findAllById(userIds).forEach(user -> result.put(user.getId(), UserSummary.from(user)));
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public UserSummary findByCode(String userCode) {
         if (userCode == null || userCode.isBlank()) {
             throw new IllegalArgumentException("userCode must not be blank");

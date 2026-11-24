@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page(${outing.title}, 'home', ~{::main})}">
+<head>
+  <title>Outing · Koto Pai</title>
+</head>
+<body>
+<main class="page-outing">
+  <a class="back" th:href="@{/outings}">← All outings</a>
+
+  <div class="head">
+    <div>
+      <h1 th:text="${outing.title}">Burger night</h1>
+      <p>
+        <span th:text="${#temporals.format(outing.date, 'd MMM yyyy')}">6 Nov 2026</span>
+        · <span th:text="${#strings.capitalize(#strings.toLowerCase(outing.category.name()))}">Eating</span>
+        · <span th:text="${outing.mine ? 'created by you' : 'created by ' + outing.creatorName}">created by you</span>
+      </p>
+    </div>
+    <span class="tag" th:classappend="${outing.status.name() == 'ACTIVE'} ? ' ok' : (${outing.status.name() == 'DRAFT'} ? ' warn' : '')"
+          th:text="${#strings.capitalize(#strings.toLowerCase(outing.status.name()))}">Active</span>
+  </div>
+
+  <!-- Totals -->
+  <div class="card">
+    <div class="row">
+      <div class="grow"><b>Bill total</b><small>All items</small></div>
+      <div class="amt" th:text="${'৳' + outing.billTotal}">৳1900.00</div>
+    </div>
+    <div class="row">
+      <div class="grow"><b>Paid so far</b><small>What people put in at the counter</small></div>
+      <div class="amt" th:text="${'৳' + outing.paidTotal}">৳1900.00</div>
+    </div>
+  </div>
+
+  <!-- Why it cannot be calculated yet -->
+  <div class="banner" th:if="${not outing.calculated}" style="margin-top: 12px;">
+    <div>
+      <b>This outing is not ready to split yet</b>
+      <ul style="margin: 6px 0 0 18px;">
+        <li th:each="issue : ${outing.issues}" th:text="${issue}">Add at least one item.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- People -->
+  <div class="sec"><h2>People</h2></div>
+  <div class="card">
+    <div th:each="p : ${outing.people}" class="row">
+      <div class="av" th:classappend="${p.guest} ? ' g'"
+           th:style="${p.avatarColor != null} ? 'background-color:' + ${p.avatarColor} + '; color:#fff;' : ''"
+           th:text="${p.initial}">R</div>
+      <div class="grow">
+        <b><span th:text="${p.name}">Rafsan</span> <span class="tag guest" th:if="${p.guest}">Guest</span></b>
+        <small th:text="${p.subtitle}">@rafsan10</small>
+      </div>
+      <div class="amt" th:if="${p.hasNumbers()}">
+        <span th:if="${p.net.signum() > 0}" class="get" th:text="${'+৳' + p.net}">+৳700.00</span>
+        <span th:if="${p.net.signum() < 0}" class="owe" th:text="${'−৳' + p.net.abs()}">−৳300.00</span>
+        <span th:if="${p.net.signum() == 0}">৳0.00</span>
+        <small th:text="${'ate ৳' + p.consumed + ' · paid ৳' + p.paid}">ate ৳700 · paid ৳1400</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Items -->
+  <div class="sec"><h2>Items</h2></div>
+  <div class="card empty" th:if="${#lists.isEmpty(outing.items)}"><p>No items yet.</p></div>
+  <div class="card" th:if="${not #lists.isEmpty(outing.items)}">
+    <div th:each="item : ${outing.items}" class="row">
+      <div class="grow">
+        <b th:text="${item.name}">Large pizza</b>
+        <small><span th:text="${item.splitLabel}">By percentage</span> · <span th:text="${item.sharedBy}">Rafsan 50%</span></small>
+      </div>
+      <div class="amt" th:text="${'৳' + item.amount}">৳1000.00</div>
+    </div>
+  </div>
+
+  <!-- Actions (creator only) -->
+  <div class="card" th:if="${outing.canSubmit or outing.canCancel or outing.canDelete}" style="margin-top: 16px;">
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <form th:if="${outing.canSubmit}" th:action="@{/outings/{id}/submit(id=${outing.id})}" method="post">
+        <button type="submit" class="btn" th:disabled="${not outing.calculated}">Submit and split</button>
+      </form>
+      <form th:if="${outing.canCancel}" th:action="@{/outings/{id}/cancel(id=${outing.id})}" method="post"
+            onsubmit="return confirm('Cancel this outing? Its debts will be voided.');">
+        <button type="submit" class="btn line">Cancel outing</button>
+      </form>
+      <form th:if="${outing.canDelete}" th:action="@{/outings/{id}/delete(id=${outing.id})}" method="post"
+            onsubmit="return confirm('Delete this draft?');">
+        <button type="submit" class="btn line" style="color: var(--muted);">Delete draft</button>
+      </form>
+    </div>
+  </div>
+</main>
+</body>
+</html>

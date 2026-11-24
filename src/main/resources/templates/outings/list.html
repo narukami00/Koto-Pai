@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page('Outings', 'home', ~{::main})}">
+<head>
+  <title>Outings · Koto Pai</title>
+</head>
+<body>
+<main class="page-outings">
+  <div class="head">
+    <div>
+      <h1>Outings</h1>
+      <p>Everything you created or were part of.</p>
+    </div>
+    <a class="btn" th:href="@{/outings/new}"><svg class="i"><use href="#i-plus"/></svg><span>New outing</span></a>
+  </div>
+
+  <div class="card empty" th:if="${outingList.empty}">
+    <p>No outings yet. Start one and split the bill.</p>
+    <a class="btn" th:href="@{/outings/new}" style="margin-top: 12px;">Create your first outing</a>
+  </div>
+
+  <th:block th:if="${not #lists.isEmpty(outingList.active)}">
+    <div class="sec"><h2>Active</h2></div>
+    <div class="card">
+      <a th:each="o : ${outingList.active}" class="row" th:href="@{/outings/{id}(id=${o.id})}" style="text-decoration: none; color: inherit;">
+        <div class="av" th:text="${#strings.substring(o.title, 0, 1).toUpperCase()}">B</div>
+        <div class="grow">
+          <b th:text="${o.title}">Burger night</b>
+          <small><span th:text="${#temporals.format(o.date, 'd MMM yyyy')}">6 Nov 2026</span> · <span th:text="${o.mine ? 'by you' : 'by ' + o.creatorName}">by you</span></small>
+        </div>
+        <div class="amt"><span th:text="${'৳' + o.billTotal}">৳1900.00</span><small><span class="tag ok">Active</span></small></div>
+      </a>
+    </div>
+  </th:block>
+
+  <th:block th:if="${not #lists.isEmpty(outingList.drafts)}">
+    <div class="sec"><h2>Drafts</h2></div>
+    <div class="card">
+      <a th:each="o : ${outingList.drafts}" class="row" th:href="@{/outings/{id}(id=${o.id})}" style="text-decoration: none; color: inherit;">
+        <div class="av" th:text="${#strings.substring(o.title, 0, 1).toUpperCase()}">B</div>
+        <div class="grow">
+          <b th:text="${o.title}">Burger night</b>
+          <small><span th:text="${#temporals.format(o.date, 'd MMM yyyy')}">6 Nov 2026</span> · only you can see this</small>
+        </div>
+        <div class="amt"><span th:text="${'৳' + o.billTotal}">৳0.00</span><small><span class="tag warn">Draft</span></small></div>
+      </a>
+    </div>
+  </th:block>
+
+  <th:block th:if="${not #lists.isEmpty(outingList.past)}">
+    <div class="sec"><h2>Past</h2></div>
+    <div class="card">
+      <a th:each="o : ${outingList.past}" class="row" th:href="@{/outings/{id}(id=${o.id})}" style="text-decoration: none; color: inherit;">
+        <div class="av" th:text="${#strings.substring(o.title, 0, 1).toUpperCase()}">B</div>
+        <div class="grow">
+          <b th:text="${o.title}">Burger night</b>
+          <small><span th:text="${#temporals.format(o.date, 'd MMM yyyy')}">6 Nov 2026</span> · <span th:text="${o.mine ? 'by you' : 'by ' + o.creatorName}">by you</span></small>
+        </div>
+        <div class="amt"><span th:text="${'৳' + o.billTotal}">৳0.00</span><small><span class="tag" th:text="${#strings.capitalize(#strings.toLowerCase(o.status.name()))}">Settled</span></small></div>
+      </a>
+    </div>
+  </th:block>
+</main>
+</body>
+</html>
