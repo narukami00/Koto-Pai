@@ -11,6 +11,16 @@ import com.kotopai.user.dto.UserSummary;
 public interface UserService {
 
     /**
+     * Looks up the public summaries of several users at once (names and avatars for pages and lists).
+     * Unknown ids are simply absent from the result.
+     *
+     * @param userIds user ids
+     * @return summaries keyed by user id
+     */
+    java.util.Map<Long, UserSummary> summariesOf(java.util.Collection<Long> userIds);
+
+
+    /**
      * Retrieves the profile of a user by their ID.
      *
      * @param userId user ID
