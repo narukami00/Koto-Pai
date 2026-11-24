@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page('Admin Console', 'admin', ~{::main})}">
+<head>
+  <title>Admin Console · Koto Pai</title>
+</head>
+<body>
+<main class="page-admin">
+  <!-- Header -->
+  <div class="head">
+    <div>
+      <h1>Admin Console</h1>
+      <p>System overview, platform health metrics, and user management.</p>
+    </div>
+  </div>
+
+  <!-- System Statistics Grid -->
+  <div class="sec">
+    <h2>Platform Overview</h2>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px;">
+    <div class="card" style="padding: 16px; text-align: center;">
+      <div style="font-size: 13px; color: var(--muted); font-weight: 600;">Total Users</div>
+      <div style="font-size: 26px; font-weight: 800; color: var(--teal); margin-top: 4px;" th:text="${stats.totalUsers}">0</div>
+    </div>
+    <div class="card" style="padding: 16px; text-align: center;">
+      <div style="font-size: 13px; color: var(--muted); font-weight: 600;">Total Outings</div>
+      <div style="font-size: 26px; font-weight: 800; color: var(--teal); margin-top: 4px;" th:text="${stats.totalOutings}">0</div>
+    </div>
+    <div class="card" style="padding: 16px; text-align: center;">
+      <div style="font-size: 13px; color: var(--muted); font-weight: 600;">Active Friendships</div>
+      <div style="font-size: 26px; font-weight: 800; color: var(--teal); margin-top: 4px;" th:text="${stats.totalFriendships}">0</div>
+    </div>
+    <div class="card" style="padding: 16px; text-align: center;">
+      <div style="font-size: 13px; color: var(--muted); font-weight: 600;">Total Notifications</div>
+      <div style="font-size: 26px; font-weight: 800; color: var(--teal); margin-top: 4px;" th:text="${stats.totalNotifications}">0</div>
+    </div>
+    <div class="card" style="padding: 16px; text-align: center;">
+      <div style="font-size: 13px; color: var(--muted); font-weight: 600;">Settled Volume</div>
+      <div style="font-size: 24px; font-weight: 800; color: var(--green-ink); margin-top: 4px;" th:text="${stats.formattedSettledVolume}">৳0.00</div>
+    </div>
+  </div>
+
+  <!-- User Management Section -->
+  <div class="sec">
+    <h2>
+      User Management
+      <span class="tag ok" th:text="${#lists.size(users)} + ' total'">0 total</span>
+    </h2>
+  </div>
+
+  <div class="card">
+    <div th:each="u : ${users}" class="row" style="align-items: center; justify-content: space-between;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="av"
+             th:classappend="${u.role.name() == 'ADMIN'} ? ' a' : ''"
+             th:text="${u.displayName != null && !u.displayName.isEmpty() ? #strings.substring(u.displayName, 0, 1) : 'U'}">U</div>
+        <div class="grow">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <b th:text="${u.displayName}">User</b>
+            <span th:if="${u.role.name() == 'ADMIN'}" class="tag ok">ADMIN</span>
+            <span th:if="${u.role.name() == 'USER'}" class="tag">USER</span>
+            <span th:if="${u.id == currentAdminId}" class="tag warn" style="font-size: 10px;">YOU</span>
+          </div>
+          <small style="display: block; color: var(--muted);" th:text="${'@' + u.userCode + ' · ' + u.email}">@handle · user@kotopai.com</small>
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <!-- Promote to ADMIN -->
+        <form th:if="${u.role.name() != 'ADMIN'}" th:action="@{/admin/users/{id}/role(id=${u.id})}" method="post" style="display: inline;">
+          <input type="hidden" name="role" value="ADMIN" />
+          <button type="submit" class="btn sm" title="Promote to Administrator">Make Admin</button>
+        </form>
+        <!-- Demote to USER -->
+        <form th:if="${u.role.name() == 'ADMIN' and u.id != currentAdminId}" th:action="@{/admin/users/{id}/role(id=${u.id})}" method="post" style="display: inline;">
+          <input type="hidden" name="role" value="USER" />
+          <button type="submit" class="btn sm line" style="color: var(--orange-ink);" title="Demote to Regular User">Demote to User</button>
+        </form>
+        <!-- Disabled demote for current admin -->
+        <span th:if="${u.role.name() == 'ADMIN' and u.id == currentAdminId}" style="color: var(--muted); font-size: 12px; font-style: italic;">
+          Current Admin
+        </span>
+      </div>
+    </div>
+  </div>
+</main>
+</body>
+</html>
+

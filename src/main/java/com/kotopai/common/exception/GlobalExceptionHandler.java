@@ -54,6 +54,12 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalState(
+            IllegalStateException ex, WebRequest request) {
+        return error(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
     private ResponseEntity<Map<String, Object>> error(
             HttpStatus status, String message, WebRequest request) {
         Map<String, Object> body = new LinkedHashMap<>();
