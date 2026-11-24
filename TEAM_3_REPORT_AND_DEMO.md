@@ -1,28 +1,36 @@
-# Koto Pai Ledger Settlement and History Report
+# Koto Pai Project Report and Demo Pack
 
-This section records the completed Member 3 work for the project report and presentation. The ledger slice now covers debt generation, balances, payments, disputes, guest settlement, mutual-friend delegation, reversible delegation disputes, and a durable activity timeline. The verified demonstration path is the burger-night split followed by payment, delegation, and guest settlement.
+This document coordinates the final technical report and presentation evidence across all three members. The ledger slice covers debt generation, balances, payments, disputes, guest settlement, mutual-friend delegation, reversible delegation disputes, and a durable activity timeline. The verified demonstration path is the burger-night split followed by dispute resolution, payment, delegation, and guest settlement.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    O[Outing submitted] --> E[OutingActivatedEvent]
-    E --> F[SettlementFacade]
-    F --> S[DebtSimplifier]
-    S --> D[(Debt and GuestDebt)]
-    D --> L[LedgerService]
-    D --> P[PaymentService]
-    D --> X[DisputeService]
-    D --> G[DelegationService]
-    P --> EV[Domain events]
-    X --> EV
-    G --> EV
-    EV --> A[(ActivityEvent timeline)]
-    L --> UI[Balances and friend history]
-    A --> UI
+    UI[Thymeleaf pages and REST clients] --> SEC[Spring Security session, CSRF and RBAC]
+    SEC --> AUTH[Auth, users, friends and profiles]
+    SEC --> OUT[Outing aggregate and split engine]
+    SEC --> LED[Ledger and settlement facade]
+    OUT -->|Outing lifecycle events| LED
+    OUT -->|Notification events| OBS[Notification and activity observers]
+    LED -->|Payment, dispute and delegation events| OBS
+    OUT --> DB[(PostgreSQL / H2)]
+    LED --> DB
+    AUTH --> DB
+    OBS --> DB
+    CI[GitHub Actions: unit, integration and JaCoCo] --> APP[Spring Boot application image]
+    APP --> DOCKER[Non-root Docker runtime]
+    DOCKER --> DB
 ```
 
-The outing package publishes lifecycle events instead of writing ledger tables directly. `DefaultDebtService` converts the outing snapshot into net positions, simplifies those positions, and persists debts. Payment, dispute, delegation, and guest-settlement services enforce their own authorization and lifecycle rules. The activity observer converts domain events into a user-visible audit trail.
+The modules communicate through ports and application events rather than cross-writing each other's tables. `SplitEngine` calculates exact participant nets, `DefaultDebtService` simplifies and persists them, and settlement services enforce authorization and lifecycle rules. Notification and activity observers turn domain events into user-visible messages and an audit trail.
+
+## Team evidence matrix
+
+| Owner | Delivered area | Patterns represented in code | Test evidence | Security boundary |
+| --- | --- | --- | --- | --- |
+| Member 1 | Authentication, users, friends, profiles, notifications, admin and DevOps | Service/Facade (`FriendService`), Observer (`NotificationEventListener`), Repository | Registration/login, friendship rules, profile, notification isolation, admin/RBAC and security integration tests | BCrypt, authenticated-by-default routes, CSRF, `ADMIN` role and resource-scoped notification/profile services |
+| Member 2 | Outings, guests, items, contributions, split preview and pages | Strategy + Factory (`SplitStrategy`, `SplitStrategyFactory`), State (`OutingStatus`), Builder (`OutingSnapshot`), Observer (`OutingActivatedEvent`) | Rounding, validation, split engine, mapping, CRUD, preview, submit/cancel and outing authorization tests | Creator-only mutation, creator/participant visibility and payment-locked active outings |
+| Member 3 | Debts, ledger, payments, disputes, delegation, history and activity | Facade (`SettlementFacade`), State (`DebtState`), Observer (`ActivityEventListener`), greedy simplification strategy | Simplifier/delegation units; full settlement, authorization, concurrency, activity and history integration tests | Authenticated ledger APIs plus debtor, creditor, guest-owner and delegation-participant checks in services |
 
 ## Design patterns
 
@@ -44,7 +52,7 @@ Spring application events decouple ledger operations from the activity timeline 
 
 ## Security controls
 
-All ledger, debt, payment, guest-debt, delegation, and activity API routes require authentication. Controllers derive the user ID from the authenticated principal; client-supplied user IDs are not trusted.
+All application routes are authenticated by default except login, registration and static assets. Admin routes require `ROLE_ADMIN`; API requests return `401` while page requests redirect to login. CSRF remains enabled. Controllers derive the user ID from the authenticated principal, so client-supplied user IDs are never trusted as authority.
 
 Resource checks are enforced in services:
 
@@ -60,7 +68,7 @@ Request DTOs validate positive IDs, positive amounts, two-decimal precision, and
 
 ## Test evidence
 
-The complete Maven lifecycle passed on 18 November 2026 with 516 unit tests and 42 integration tests. The integration suite includes `ConcurrentPaymentIT`, which proves that two simultaneous ৳60 attempts against a ৳100 debt result in one payment and ৳40 remaining.
+The complete Phase 4 branch verification passed on 25 November 2026 with **615 unit tests** and **77 integration tests**, with zero failures, errors or skipped tests; the JaCoCo coverage gate also passed. A focused hardening run additionally confirmed all 5 debt-state unit tests and all 20 selected Phase 4 integration cases. The selected integration set contains the full settlement flow, the complete ledger/activity route authorization matrix, delegation end to end, and concurrent payment protection.
 
 Member 3 coverage includes:
 
@@ -71,6 +79,8 @@ Member 3 coverage includes:
 - End-to-end delegation, ledger conservation after delegation, reversal through dispute, activity persistence, unauthenticated access, and forbidden actors.
 - Concurrent direct payment attempts guarded by optimistic locking.
 
+`LedgerFullFlowIT` creates and submits a real outing, observes generated debt, disputes it, has the creator regenerate it, records and confirms a partial payment, pays the remainder, and verifies the outing becomes `SETTLED`. `LedgerAuthorizationIT` covers every ledger/activity API and page route as anonymous and verifies that an unrelated authenticated user sees no foreign ledger data and cannot mutate a debt, payment, guest debt or delegation. `ConcurrentPaymentIT` proves that two simultaneous ৳60 attempts against a ৳100 debt result in exactly one payment and ৳40 remaining.
+
 Run the same checks locally with:
 
 ```powershell
@@ -78,6 +88,27 @@ Run the same checks locally with:
 ```
 
 GitHub Actions runs unit tests first and integration tests second on pushes and pull requests to `main` and `develop`. It uploads Surefire, Failsafe, JaCoCo unit coverage, and JaCoCo integration coverage artifacts. Use the Actions run summary and uploaded reports as the final CI screenshots for the submitted report.
+
+### CI red-to-green evidence
+
+- Red: [failed `feature/m1-seed-and-ports` run 44592651592](https://github.com/narukami00/Koto-Pai/actions/runs/44592651592).
+- Green after the fix: [successful run 44595540675](https://github.com/narukami00/Koto-Pai/actions/runs/44595540675).
+- Latest green `develop` baseline before Phase 4: [run 45451248844](https://github.com/narukami00/Koto-Pai/actions/runs/45451248844).
+
+For the report screenshots, capture the run header (branch, commit and red/green result), the failed/passing job list, and the four artifact names: `unit-test-reports`, `unit-coverage`, `integration-test-reports`, and `integration-coverage`. The Phase 4 pull request supplies the final green screenshot after push.
+
+## Docker and deployment runbook
+
+The production image uses a three-stage Java 21 build, layered Spring Boot JAR, Alpine JRE, an unprivileged `kotopai` user, and an Actuator health check. Docker Compose starts PostgreSQL 16 with a persistent volume and waits for database health before starting the application.
+
+1. Copy environment values into a local `.env`; never commit production credentials.
+2. Run `docker compose up -d --build`.
+3. Verify `docker compose ps`, then open `http://localhost:8080/actuator/health` and the application at `http://localhost:8080`.
+4. Inspect failures with `docker compose logs -f app`.
+5. Stop safely with `docker compose down`; use `docker compose down -v` only when intentionally deleting local database data.
+6. For Render, Railway, Fly.io or another container host, deploy the repository Dockerfile, expose port `8080`, set the health path to `/actuator/health`, select profile `prod`, and provide `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SCHEMA` and `DB_SSLMODE` through the platform secret manager.
+
+The full variable table and standalone managed-PostgreSQL example are maintained in [`DEPLOYMENT.md`](DEPLOYMENT.md).
 
 ## Presentation outline
 
@@ -131,4 +162,4 @@ Finish on the activity timeline and filter by type or friend. Open a per-friend 
 
 ## Final submission assets
 
-The report should include screenshots of the dashboard totals, pending and confirmed payment states, disputed balance exclusion, delegation suggestion and reversal, guest settlement, activity timeline, and the green GitHub Actions run. The presentation should reuse the architecture diagram and burger-night table above. Deployment commands should be taken from the final team deployment configuration once the app hosting and PostgreSQL environment are selected.
+The report screenshot set is: dashboard totals; pending and confirmed payment states; disputed balance exclusion; delegation suggestion and reversal; guest settlement; activity timeline; the linked red and green CI runs; Docker Compose services; and the Actuator health response. The presentation reuses the architecture diagram and burger-night table above. Deployment commands come from the checked-in Docker and deployment configuration, so report and demo steps remain reproducible.
