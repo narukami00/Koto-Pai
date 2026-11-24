@@ -1,0 +1,20 @@
+# Git and IDE files
+.git
+.gitignore
+.gitattributes
+.idea
+.vscode
+*.iml
+.mvn/wrapper/maven-wrapper.jar
+
+# Build outputs
+target/
+build/
+*.class
+
+# Environment files and credentials
+.env*
+!*.example
+
+# Scratch files
+.system_generated/
