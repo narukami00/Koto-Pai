@@ -54,7 +54,7 @@ class LayoutRenderIT {
                 .andExpect(content().string(containsString("href=\"/profile\"")))
                 .andExpect(content().string(containsString("href=\"/login\"")))
                 .andExpect(content().string(containsString("href=\"/register\"")))
-                .andExpect(content().string(containsString("Hello, world!")))
+                .andExpect(content().string(containsString("Split the bill fairly")))
                 .andExpect(content().string(not(containsString("href=\"/notifications\""))));
     }
 
