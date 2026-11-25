@@ -145,6 +145,7 @@ class OutingPageFacadeTest {
         assertThat(detail.issues()).anyMatch(m -> m.contains("short by 200.00"));
         assertThat(detail.people().get(0).hasNumbers()).isFalse();
         assertThat(detail.people().get(0).name()).isEqualTo("User #1");
+        assertThat(detail.canEdit()).isTrue();
         assertThat(detail.canSubmit()).isTrue();
         assertThat(detail.canDelete()).isTrue();
         assertThat(detail.canCancel()).isTrue();
@@ -161,6 +162,7 @@ class OutingPageFacadeTest {
         OutingDetail participantView = facade.detail(2L, 7L);
 
         assertThat(participantView.mine()).isFalse();
+        assertThat(participantView.canEdit()).isFalse();
         assertThat(participantView.canSubmit()).isFalse();
         assertThat(participantView.canCancel()).isFalse();
         assertThat(participantView.canDelete()).isFalse();
@@ -169,6 +171,7 @@ class OutingPageFacadeTest {
         when(outings.view(1L, 7L)).thenReturn(o);
         when(access.isCreator(o, 1L)).thenReturn(true);
         OutingDetail cancelled = facade.detail(1L, 7L);
+        assertThat(cancelled.canEdit()).isFalse();
         assertThat(cancelled.canCancel()).isFalse();
         assertThat(cancelled.canSubmit()).isFalse();
     }

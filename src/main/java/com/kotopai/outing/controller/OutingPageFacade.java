@@ -63,7 +63,7 @@ public class OutingPageFacade {
     }
 
     public record OutingDetail(Long id, String title, OutingCategory category, LocalDate date, OutingStatus status,
-                               String creatorName, boolean mine, boolean canSubmit, boolean canCancel, boolean canDelete,
+                               String creatorName, boolean mine, boolean canEdit, boolean canSubmit, boolean canCancel, boolean canDelete,
                                BigDecimal billTotal, BigDecimal paidTotal, List<ItemRow> items, List<PersonRow> people,
                                List<String> issues) {
         public boolean isCalculated() {
@@ -143,6 +143,7 @@ public class OutingPageFacade {
         OutingStatus status = outing.getStatus();
         return new OutingDetail(outing.getId(), outing.getTitle(), outing.getCategory(), outing.getDate(), status,
             nameOf(names, outing.getCreatorId()), mine,
+            mine && (status == OutingStatus.DRAFT || status == OutingStatus.ACTIVE),
             mine && status == OutingStatus.DRAFT,
             mine && (status == OutingStatus.DRAFT || status == OutingStatus.ACTIVE),
             mine && status == OutingStatus.DRAFT,
