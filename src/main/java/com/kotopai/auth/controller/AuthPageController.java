@@ -6,6 +6,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import jakarta.validation.Valid;
 
@@ -42,8 +43,15 @@ public class AuthPageController {
     public String register(
             @Valid @ModelAttribute("registerRequest") RegisterRequest request,
             BindingResult bindingResult,
+            @RequestParam(name = "confirmPassword", required = false) String confirmPassword,
             Model model) {
-        if (bindingResult.hasErrors()) {
+        // The confirmation only exists on this web form (the REST API takes the password once), so it is checked
+        // here rather than added to RegisterRequest.
+        boolean confirmMismatch = confirmPassword == null || !confirmPassword.equals(request.password());
+        if (confirmMismatch) {
+            model.addAttribute("confirmPasswordError", "Passwords do not match");
+        }
+        if (bindingResult.hasErrors() || confirmMismatch) {
             return "auth/register";
         }
 
