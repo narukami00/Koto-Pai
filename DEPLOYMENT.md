@@ -123,3 +123,39 @@ docker run -d \
 
 The same steps work on Railway or Fly.io (they also build the `Dockerfile` and provide `PORT`).
 
+Live site: https://koto-pai-aatd.onrender.com (Render free tier sleeps after about 15 minutes without traffic and takes
+about a minute to wake; the monitoring below keeps it awake).
+
+### CI/CD (GitHub Actions, `.github/workflows/ci.yml`)
+| Job | Runs on | What it does |
+|---|---|---|
+| Unit tests | every push and pull request | `./mvnw test` with the coverage gate |
+| Integration tests | after unit tests | `./mvnw verify -DskipUTs=true` |
+| Docker image builds and starts | after unit tests | builds the `Dockerfile`, starts it next to a throw-away PostgreSQL and waits for `/actuator/health` to be `UP` |
+| Deploy to Render | **only pushes to `main`**, after all three above pass | calls the Render deploy hook for that exact commit, then waits for the public health check |
+
+- The deploy hook lives in the repository secret `RENDER_DEPLOY_HOOK_URL` (Settings → Secrets and variables → Actions). It is never in the code.
+- Render's own Auto-Deploy is **off**, so a deploy only happens when this pipeline asks for it.
+- `main` is protected: changes arrive by pull request with at least one approval.
+- The final health wait cannot tell old from new if the new build fails (Render keeps serving the old version), so also glance at the Render dashboard after a release.
+
+### Monitoring the live site
+1. **Uptime check (free):** create an HTTP(s) monitor in UptimeRobot, Better Stack or similar for
+   `https://koto-pai-aatd.onrender.com/actuator/health`, every 5 minutes, alert if the body does not contain `"status":"UP"`.
+   Pinging every 5 minutes also stops the free instance from going to sleep.
+2. **Metrics dashboard for the live site (runs on your machine):** `METRICS_PASSWORD` must be set on the Render service
+   (the endpoint answers 401 to everyone without it; with no password configured it is closed completely).
+   ```powershell
+   $env:LIVE_METRICS_PASSWORD = "<the METRICS_PASSWORD set on Render>"
+   docker compose -f docker-compose.live-monitoring.yml up -d
+   ```
+   - Grafana: http://localhost:3001 (`admin` / `kotopai_grafana`) → dashboard **Koto Pai - Application Overview**
+   - Prometheus: http://localhost:9091 → Status → Targets, `kotopai` should be UP
+   - Stop with `docker compose -f docker-compose.live-monitoring.yml down` (with `LIVE_METRICS_PASSWORD` still set in
+     that shell, or set it to any value). It runs beside the local stack
+     (http://localhost:3000 is the *local* copy of the app).
+   - Scraping every 15 s also keeps the free Render instance awake while it runs.
+   - Alternative without Docker: Grafana Cloud (free) → *Metrics Endpoint* connection to
+     `https://koto-pai-aatd.onrender.com/actuator/prometheus` with basic auth, then import `monitoring/grafana/dashboards/kotopai.json`.
+3. **Logs:** Render dashboard → Logs, filter by `ERROR` after a release.
+

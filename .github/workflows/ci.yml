@@ -87,3 +87,79 @@ jobs:
         with:
           name: integration-coverage
           path: target/site/jacoco-it/
+
+  # Proves the production image still builds (Render builds the same Dockerfile), and that the container
+  # actually starts and answers its health check, before anything can be merged.
+  docker-build:
+    name: Docker image builds and starts
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the image
+        run: docker build -t kotopai:ci .
+
+      - name: Start the image with a throw-away PostgreSQL and wait for health UP
+        run: |
+          docker network create kotopai-ci
+          docker run -d --name pg --network kotopai-ci \
+            -e POSTGRES_DB=kotopai -e POSTGRES_USER=kotopai -e POSTGRES_PASSWORD=ci-only-password \
+            postgres:16-alpine
+          docker run -d --name app --network kotopai-ci -p 8080:8080 \
+            -e SPRING_PROFILES_ACTIVE=prod \
+            -e DB_HOST=pg -e DB_PORT=5432 -e DB_NAME=kotopai -e DB_USER=kotopai \
+            -e DB_PASSWORD=ci-only-password -e DB_SSLMODE=disable \
+            kotopai:ci
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/actuator/health | grep -q '"status":"UP"'; then
+              echo "Container is healthy after $((i * 5))s"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Container did not become healthy" >&2
+          docker logs app | tail -80
+          exit 1
+
+  # Continuous deployment: only after every check above passed, and only for pushes to main (which is what a
+  # merged pull request is). Render's own auto-deploy is off, so this job is what ships the release.
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, docker-build]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://koto-pai-aatd.onrender.com
+    steps:
+      - name: Trigger the Render deploy hook for this exact commit
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL is not set; skipping deploy." >&2
+            exit 1
+          fi
+          status=$(curl -sS -o /tmp/render-response.txt -w '%{http_code}' -X POST "${RENDER_DEPLOY_HOOK_URL}&ref=${GITHUB_SHA}")
+          echo "Render answered HTTP $status"
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            exit 1
+          fi
+          echo "Deploy of ${GITHUB_SHA} requested." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Wait for the live site to report healthy
+        run: |
+          # Render keeps serving the old version while the new one builds (about 4-6 minutes), so give it time,
+          # then require a healthy answer from the public URL.
+          sleep 240
+          for i in $(seq 1 30); do
+            if curl -fsS https://koto-pai-aatd.onrender.com/actuator/health | grep -q '"status":"UP"'; then
+              echo "Live site is healthy."
+              echo "Live site healthy after deploy: https://koto-pai-aatd.onrender.com" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "Live site did not report healthy" >&2
+          exit 1
