@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page('Settle up', 'settle', ~{::main})}">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Settle up · Koto Pai</title>
-  <link rel="stylesheet" th:href="@{/css/kotopai.css}">
 </head>
 <body>
-<main class="wrap dashboard">
+<main class="dashboard">
   <header class="page-head"><div><a class="back" th:href="@{/ledger}">← Balances</a><h1>Settle up</h1><p class="muted">Pay back, or reroute debts between mutual friends.</p></div></header>
   <p class="notice" th:if="${param.delegated}">Delegation completed.</p>
   <div class="two-column">
@@ -16,7 +14,7 @@
       <div class="card history-list">
         <p class="empty" th:if="${#lists.isEmpty(debts)}">You are all settled up.</p>
         <article class="history-row" th:each="debt : ${debts}">
-          <div><b th:text="${debt.debtorId == userId ? 'You → User #' + debt.creditorId : 'User #' + debt.debtorId + ' → You'}">Debt</b><small th:text="${debt.origin}">OUTING</small></div>
+          <div><b th:text="${debt.debtorId == userId ? 'You → ' + @people.nameOf(debt.creditorId) : @people.nameOf(debt.debtorId) + ' → You'}">Debt</b><small th:text="${debt.origin}">OUTING</small></div>
           <div class="history-money"><b th:text="${'৳' + debt.remaining}">৳0.00</b><span class="tag" th:text="${debt.status}">OPEN</span></div>
         </article>
       </div>
@@ -26,8 +24,8 @@
       <p class="card empty" th:if="${#lists.isEmpty(suggestions)}">No safe mutual-friend delegation is available.</p>
       <article class="suggestion-card" th:each="suggestion : ${suggestions}">
         <b>Skip a step</b>
-        <p th:text="${'User #' + suggestion.debtorId + ' owes you and you owe User #' + suggestion.creditorId + '. They can settle directly.'}">Suggestion</p>
-        <div class="delegation-flow"><span th:text="${'User #' + suggestion.debtorId}">Debtor</span><b>→</b><span th:text="${'User #' + suggestion.creditorId}">Creditor</span><strong th:text="${'৳' + suggestion.amount}">৳0.00</strong></div>
+        <p th:text="${@people.nameOf(suggestion.debtorId) + ' owes you and you owe ' + @people.nameOf(suggestion.creditorId) + '. They can settle directly.'}">Suggestion</p>
+        <div class="delegation-flow"><span th:text="${@people.nameOf(suggestion.debtorId)}">Debtor</span><b>→</b><span th:text="${@people.nameOf(suggestion.creditorId)}">Creditor</span><strong th:text="${'৳' + suggestion.amount}">৳0.00</strong></div>
         <form method="post" th:action="@{/settle/delegations}">
           <input type="hidden" name="incomingDebtId" th:value="${suggestion.incomingDebtId}">
           <input type="hidden" name="outgoingDebtId" th:value="${suggestion.outgoingDebtId}">

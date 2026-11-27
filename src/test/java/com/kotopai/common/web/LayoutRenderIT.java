@@ -40,18 +40,18 @@ class LayoutRenderIT {
     }
 
     @Test
-    @DisplayName("Anonymous visitor sees navigation shell, login/signup buttons, and home content")
+    @DisplayName("Anonymous visitor sees login/signup and the welcome content, but none of the app navigation")
     void anonymousHomeRendersLayoutShell() throws Exception {
         mvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("class=\"shell\"")))
-                .andExpect(content().string(containsString("class=\"side\"")))
-                .andExpect(content().string(containsString("class=\"tabbar\"")))
-                .andExpect(content().string(containsString("href=\"/friends\"")))
-                .andExpect(content().string(containsString("href=\"/outings/new\"")))
-                .andExpect(content().string(containsString("href=\"/settle\"")))
-                .andExpect(content().string(containsString("href=\"/activity\"")))
-                .andExpect(content().string(containsString("href=\"/profile\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.matchesPattern("(?s).*class=\"shell\\s+anon\".*")))
+                .andExpect(content().string(not(containsString("class=\"side\""))))
+                .andExpect(content().string(not(containsString("class=\"tabbar\""))))
+                .andExpect(content().string(not(containsString("href=\"/friends\""))))
+                .andExpect(content().string(not(containsString("href=\"/outings/new\""))))
+                .andExpect(content().string(not(containsString("href=\"/settle\""))))
+                .andExpect(content().string(not(containsString("href=\"/activity\""))))
+                .andExpect(content().string(not(containsString("href=\"/profile\""))))
                 .andExpect(content().string(containsString("href=\"/login\"")))
                 .andExpect(content().string(containsString("href=\"/register\"")))
                 .andExpect(content().string(containsString("Split the bill fairly")))

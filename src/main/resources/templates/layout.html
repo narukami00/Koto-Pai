@@ -23,9 +23,9 @@
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
   </svg>
 
-  <div class="shell">
-    <!-- Desktop sidebar -->
-    <aside class="side" aria-label="Primary navigation">
+  <div class="shell" th:classappend="${navUser == null} ? ' anon'">
+    <!-- Desktop sidebar (signed-in users only: every link in it needs a login) -->
+    <aside class="side" aria-label="Primary navigation" th:if="${navUser != null}">
       <a class="brand" th:href="@{/}">Koto <span>Pai?</span></a>
 
       <a class="tab" th:classappend="${activeNav == 'home'} ? ' on'" th:href="@{/}">
@@ -79,6 +79,7 @@
               <span class="dot" th:if="${unreadNotificationCount != null and unreadNotificationCount > 0}"></span>
             </a>
             <a th:if="${navUser == null}" class="btn sm sec2" th:href="@{/login}">Log in</a>
+            <a th:if="${navUser == null}" class="btn sm or" th:href="@{/register}">Sign up</a>
           </div>
         </div>
 
@@ -91,7 +92,7 @@
   </div>
 
   <!-- Mobile bottom tab bar -->
-  <nav class="tabbar" aria-label="Mobile navigation">
+  <nav class="tabbar" aria-label="Mobile navigation" th:if="${navUser != null}">
     <a class="tab" th:classappend="${activeNav == 'home'} ? ' on'" th:href="@{/}">
       <svg class="i"><use href="#i-home"/></svg>Home
     </a>
