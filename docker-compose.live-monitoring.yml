@@ -1,0 +1,54 @@
+# Prometheus + Grafana that watch the LIVE site (Render), run from your own machine.
+#
+#   PowerShell:  $env:LIVE_METRICS_PASSWORD = "<the METRICS_PASSWORD you set on Render>"
+#                docker compose -f docker-compose.live-monitoring.yml up -d
+#   Grafana:     http://localhost:3001   (admin / kotopai_grafana, override with GRAFANA_ADMIN_PASSWORD)
+#   Prometheus:  http://localhost:9091   (Status -> Targets should show kotopai UP)
+#   Stop:        docker compose -f docker-compose.live-monitoring.yml down
+#
+# It is separate from docker-compose.yml, so it can run next to the local stack (different ports and names).
+# The password is read from your shell and is never written to a file.
+name: kotopai-live-monitoring
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: kotopai-live-prometheus
+    restart: unless-stopped
+    environment:
+      LIVE_METRICS_PASSWORD: ${LIVE_METRICS_PASSWORD:?set LIVE_METRICS_PASSWORD to the METRICS_PASSWORD configured on Render}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        printf '%s' "$$LIVE_METRICS_PASSWORD" > /tmp/metrics_password &&
+        exec /bin/prometheus
+        --config.file=/etc/prometheus/prometheus.yml
+        --storage.tsdb.path=/prometheus
+        --storage.tsdb.retention.time=15d
+    volumes:
+      - ./monitoring/prometheus/prometheus-live.yml:/etc/prometheus/prometheus.yml:ro
+      - kotopai_live_prometheus_data:/prometheus
+    ports:
+      - "${LIVE_PROMETHEUS_PORT:-9091}:9090"
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    container_name: kotopai-live-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-kotopai_grafana}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      # Same datasource (http://prometheus:9090) and dashboard as the local stack.
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - kotopai_live_grafana_data:/var/lib/grafana
+    ports:
+      - "${LIVE_GRAFANA_PORT:-3001}:3000"
+
+volumes:
+  kotopai_live_prometheus_data:
+  kotopai_live_grafana_data:

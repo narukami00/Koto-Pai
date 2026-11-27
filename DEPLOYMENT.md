@@ -143,8 +143,19 @@ about a minute to wake; the monitoring below keeps it awake).
 1. **Uptime check (free):** create an HTTP(s) monitor in UptimeRobot, Better Stack or similar for
    `https://koto-pai-aatd.onrender.com/actuator/health`, every 5 minutes, alert if the body does not contain `"status":"UP"`.
    Pinging every 5 minutes also stops the free instance from going to sleep.
-2. **Metrics dashboard:** set `METRICS_PASSWORD` (and optionally `METRICS_USER`, default `prometheus`) on the Render service.
-   In Grafana Cloud (free) add a *Metrics Endpoint* connection pointing at `https://koto-pai-aatd.onrender.com/actuator/prometheus`
-   with HTTP basic auth, then import `monitoring/grafana/dashboards/kotopai.json`. Without `METRICS_PASSWORD` the endpoint stays closed (401/403).
+2. **Metrics dashboard for the live site (runs on your machine):** `METRICS_PASSWORD` must be set on the Render service
+   (the endpoint answers 401 to everyone without it; with no password configured it is closed completely).
+   ```powershell
+   $env:LIVE_METRICS_PASSWORD = "<the METRICS_PASSWORD set on Render>"
+   docker compose -f docker-compose.live-monitoring.yml up -d
+   ```
+   - Grafana: http://localhost:3001 (`admin` / `kotopai_grafana`) → dashboard **Koto Pai - Application Overview**
+   - Prometheus: http://localhost:9091 → Status → Targets, `kotopai` should be UP
+   - Stop with `docker compose -f docker-compose.live-monitoring.yml down` (with `LIVE_METRICS_PASSWORD` still set in
+     that shell, or set it to any value). It runs beside the local stack
+     (http://localhost:3000 is the *local* copy of the app).
+   - Scraping every 15 s also keeps the free Render instance awake while it runs.
+   - Alternative without Docker: Grafana Cloud (free) → *Metrics Endpoint* connection to
+     `https://koto-pai-aatd.onrender.com/actuator/prometheus` with basic auth, then import `monitoring/grafana/dashboards/kotopai.json`.
 3. **Logs:** Render dashboard → Logs, filter by `ERROR` after a release.
 
