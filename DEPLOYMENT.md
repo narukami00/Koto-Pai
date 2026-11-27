@@ -45,6 +45,29 @@ docker compose down -v
 
 ---
 
+## 2b. Monitoring with Prometheus and Grafana
+
+The app publishes metrics (requests, latency, JVM, database pool) at `/actuator/prometheus`. The endpoint is
+protected with HTTP Basic using a dedicated scrape account, and stays closed if no password is configured.
+
+```bash
+docker compose --profile monitoring up -d --build
+```
+
+| Tool | URL | Login |
+|---|---|---|
+| Prometheus | http://localhost:9090 (Status → Targets shows `kotopai` UP) | none |
+| Grafana | http://localhost:3000 → dashboard **Koto Pai - Application Overview** | `admin` / `kotopai_grafana` (change with `GRAFANA_ADMIN_USER`, `GRAFANA_ADMIN_PASSWORD`) |
+
+- `METRICS_PASSWORD` (default `kotopai_metrics` in Compose) is the scrape password; `METRICS_USER` defaults to `prometheus`.
+- The datasource and dashboard are provisioned from `monitoring/`, so nothing needs clicking together by hand.
+- The default `docker compose up` does not start Prometheus or Grafana.
+- On a hosted deployment, leave `METRICS_PASSWORD` unset to keep metrics closed, or set it and point a
+  Grafana Cloud / Prometheus scrape job at `https://<your-app>/actuator/prometheus` with basic auth.
+- Uptime checks on the live site can use `/actuator/health` (public).
+
+---
+
 ## 3. Environment Variables Reference
 
 | Variable | Default (Compose) | Description |
@@ -59,6 +82,8 @@ docker compose down -v
 | `DB_SCHEMA` | `public` | Database schema name |
 | `DB_SSLMODE` | `disable` | SSL mode (`disable`, `require`, `verify-full`) |
 | `HOST_APP_PORT` | `8080` | Host port mapped to container port 8080 |
+| `METRICS_USER` / `METRICS_PASSWORD` | `prometheus` / `kotopai_metrics` (Compose) | Scrape account for `/actuator/prometheus`; metrics stay closed when the password is empty |
+| `HOST_PROMETHEUS_PORT` / `HOST_GRAFANA_PORT` | `9090` / `3000` | Host ports for the monitoring profile |
 
 ---
 
