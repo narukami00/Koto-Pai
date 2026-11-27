@@ -6,17 +6,27 @@
 # ------------------------------------------------------------------------------
 # Stage 1: Build Application Artifact with Maven
 # ------------------------------------------------------------------------------
-FROM eclipse-temurin:21-jdk-alpine AS builder
+# Maven ships inside this image. The Maven wrapper (./mvnw) downloads Maven from Maven Central at build time,
+# and shared build hosts such as Render get "429 Too Many Requests" there, which failed a deployment.
+FROM maven:3.9-eclipse-temurin-21-alpine AS builder
 WORKDIR /workspace
 
-# Copy Maven wrapper and POM first for dependency caching
-COPY .mvn .mvn
-COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+# Dependencies come from Google's mirror of Maven Central (maven-settings.xml) because Central itself answers
+# HTTP 429 to Render's shared build IPs. The POM is copied first so downloads are cached; the loop retries.
+COPY maven-settings.xml /tmp/maven-settings.xml
+COPY pom.xml ./
+RUN for i in 1 2 3 4 5; do \
+      mvn -s /tmp/maven-settings.xml -B -q dependency:go-offline && exit 0; \
+      echo "Dependency download failed (attempt $i), retrying..."; sleep $((i * 15)); \
+    done; exit 1
 
-# Copy application source code and compile package
+# Copy application source code and compile package.
+# Tests run in CI, not here. The pom wires Surefire to -DskipUTs (plain -DskipTests is ignored), so use that.
 COPY src src
-RUN ./mvnw clean package -DskipTests=true -B
+RUN for i in 1 2 3; do \
+      mvn -s /tmp/maven-settings.xml -B -q clean package -DskipUTs=true && exit 0; \
+      echo "Build failed (attempt $i), retrying..."; sleep $((i * 15)); \
+    done; exit 1
 
 # ------------------------------------------------------------------------------
 # Stage 2: Extract Spring Boot Layered JAR

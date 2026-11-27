@@ -113,9 +113,49 @@ class SecurityIT {
                         .param("userCode", "webuser01")
                         .param("displayName", "Web User")
                         .param("email", "webuser@example.com")
-                        .param("password", "webpass123"))
+                        .param("password", "webpass123")
+                        .param("confirmPassword", "webpass123"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/login?registered"));
+    }
+
+    @Test
+    @DisplayName("POST /register re-shows the form with an error when the passwords differ")
+    void webFormRegistrationPasswordMismatch() throws Exception {
+        mvc.perform(post("/register")
+                        .with(csrf())
+                        .param("userCode", "mismatch01")
+                        .param("displayName", "Mismatch User")
+                        .param("email", "mismatch@example.com")
+                        .param("password", "webpass123")
+                        .param("confirmPassword", "different456"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Passwords do not match")));
+    }
+
+    @Test
+    @DisplayName("POST /register without a confirmation is rejected and creates no account")
+    void webFormRegistrationMissingConfirmation() throws Exception {
+        mvc.perform(post("/register")
+                        .with(csrf())
+                        .param("userCode", "noconfirm01")
+                        .param("displayName", "No Confirm")
+                        .param("email", "noconfirm@example.com")
+                        .param("password", "webpass123"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Passwords do not match")));
+
+        // The account must not exist: logging in as it fails.
+        mvc.perform(formLogin().user("noconfirm01").password("webpass123"))
+                .andExpect(unauthenticated());
+    }
+
+    @Test
+    @DisplayName("The register page has a confirm password field")
+    void registerPageHasConfirmField() throws Exception {
+        mvc.perform(get("/register"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"confirmPassword\"")));
     }
 }
 

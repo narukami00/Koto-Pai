@@ -1,13 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page('Activity', 'activity', ~{::main})}">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Activity · Koto Pai</title>
-  <link rel="stylesheet" th:href="@{/css/kotopai.css}">
 </head>
 <body>
-<main class="wrap dashboard">
+<main class="dashboard">
   <header class="page-head"><div><a class="back" th:href="@{/ledger}">← Balances</a><h1>Activity</h1><p class="muted">The complete timeline.</p></div></header>
   <form class="filter-bar" method="get" th:action="@{/activity}">
     <label>Friend ID<input type="number" min="1" name="friendId" th:value="${selectedFriendId}" placeholder="Any friend"></label>
@@ -18,7 +16,7 @@
     <p class="empty" th:if="${#lists.isEmpty(activities)}">No matching activity yet.</p>
     <article class="timeline-row" th:each="event : ${activities}">
       <span class="timeline-dot"></span>
-      <div><b th:text="${event.description}">Activity</b><small th:text="${event.type + ' · ' + event.createdAt}">TYPE</small></div>
+      <div><b th:text="${event.description}">Activity</b><small th:text="${#strings.capitalize(#strings.replace(#strings.toLowerCase(event.type), '_', ' ')) + ' · ' + #strings.replace(#strings.substring(event.createdAt.toString(), 0, 16), 'T', ' ') + ' UTC'}">TYPE</small></div>
       <strong th:if="${event.amount != null}" th:text="${'৳' + event.amount}">৳0.00</strong>
     </article>
   </section>

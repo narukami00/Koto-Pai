@@ -161,13 +161,14 @@ class LedgerPhaseOneIT {
 		mvc.perform(get("/ledger").with(user("1")))
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString("Net balance")))
-				.andExpect(content().string(containsString("Friend #2")))
+				.andExpect(content().string(containsString("Someone")))
 				.andExpect(content().string(containsString("৳100.00")));
 
+		// User 2 is not in this test's user table, so the page shows the neutral fallback name.
 		mvc.perform(get("/ledger/friends/2").with(user("1")))
 				.andExpect(status().isOk())
-				.andExpect(content().string(containsString("History with Friend #2")))
-				.andExpect(content().string(containsString("Friend #2 → You")));
+				.andExpect(content().string(containsString("History with Someone")))
+				.andExpect(content().string(containsString("Someone → You")));
 	}
 
 	private static BigDecimal money(String amount) {

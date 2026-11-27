@@ -209,7 +209,8 @@ svg.i {
     cursor: pointer;
   }
   .logout-btn:hover { background: rgba(255, 255, 255, .12); }
-  .shell-inner { max-width: 1000px; padding: 14px 40px 40px; margin: 0; }
+  /* centred in the space beside the sidebar so wide screens do not leave a dead strip on the right */
+  .shell-inner { max-width: 1180px; padding: 14px 40px 40px; margin: 0 auto; }
   .cols { display: grid; grid-template-columns: 1.25fr 1fr; gap: 18px; align-items: start; }
   .cols > .card + .card, .cols > div > .card + .card { margin-top: 12px; }
 }
@@ -342,7 +343,7 @@ dl { margin-top: 12px; }
 dt { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-top: 10px; }
 dd { word-break: break-word; }
 code { background: var(--cream); padding: 1px 6px; border-radius: 6px; }
-.dashboard { max-width: 760px; }
+.dashboard { max-width: none; }
 .page-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 24px; }
 .page-head h1 { font-size: 28px; }
 .page-head .muted { margin-bottom: 0; }
@@ -432,6 +433,65 @@ code { background: var(--cream); padding: 1px 6px; border-radius: 6px; }
   .timeline-row { grid-template-columns: 12px 1fr; }
   .timeline-row > strong { grid-column: 2; }
 }
+
+/* ---------- responsive refinements ---------- */
+/* tablets: use more of the width than a phone column but keep the bottom tab bar */
+@media (min-width: 600px) and (max-width: 899px) {
+  .shell-inner { max-width: 780px; padding-left: 24px; padding-right: 24px; }
+}
+
+/* signed-out visitors: no app navigation, just the brand and the two entry buttons */
+.shell.anon { padding-bottom: 0; }
+.shell.anon .topbar-brand { display: block; }
+@media (min-width: 900px) {
+  .shell.anon .shell-inner { max-width: 1040px; }
+}
+.topbar-actions .btn.sm { white-space: nowrap; }
+
+/* extra button variants */
+.btn.light { background: #fff; color: var(--teal); }
+.btn.light:hover { background: var(--cream); }
+.hero > strong span { color: #f0a955; }
+.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.hero-lead { margin: 0 0 18px; max-width: 46ch; opacity: .92; }
+.hero .btn { padding: 12px 22px; }
+
+/* landing "how it works" */
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.steps > .card { margin-top: 0; }
+.step { display: flex; flex-direction: column; gap: 6px; }
+.step b { font-size: 16px; }
+.step small { color: var(--muted); font-size: 13.5px; line-height: 1.45; }
+.step-n {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--cream); color: var(--teal); font-weight: 800; margin-bottom: 4px;
+}
+@media (max-width: 720px) { .steps { grid-template-columns: 1fr; } }
+
+/* home dashboard: hero across the top, balances and outings side by side on wide screens */
+@media (min-width: 1200px) {
+  .home-grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 24px; align-items: start; }
+  .home-grid > .page-head, .home-grid > .hero { grid-column: 1 / -1; }
+}
+
+/* phones: never let tables, rows or forms push the page sideways */
+@media (max-width: 520px) {
+  .shell-inner { padding-left: 14px; padding-right: 14px; }
+  .page-head { flex-wrap: wrap; }
+  .page-head h1, .head h1 { font-size: 24px; }
+  .hero { padding: 20px; }
+  .hero-split { gap: 8px; }
+  .card { padding: 16px; }
+  .row { gap: 10px; }
+  .balance-amount, .amt { font-size: 14px; }
+  .btn { padding: 11px 16px; }
+}
+img, svg, table { max-width: 100%; }
+button, input, select, textarea { font-family: inherit; }
+button.button { border: 0; font-size: inherit; cursor: pointer; }
+/* inline links inside muted/empty text use the brand colour instead of browser blue */
+.muted a, .empty a, .help a { color: var(--teal); font-weight: 600; }
+body { overflow-x: hidden; }
 
 /* ---------- outing wizard ---------- */
 .wiz-card { margin-top: 12px; }
