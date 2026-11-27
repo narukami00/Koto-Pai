@@ -55,6 +55,12 @@
           <div th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="field-error"></div>
         </div>
 
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" placeholder="Type the password again" autocomplete="new-password" required>
+          <div th:if="${confirmPasswordError}" th:text="${confirmPasswordError}" class="field-error"></div>
+        </div>
+
         <button type="submit" class="auth-btn">Create Account</button>
       </form>
 

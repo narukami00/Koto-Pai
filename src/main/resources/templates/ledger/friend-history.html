@@ -1,17 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page('Friend history', 'home', ~{::main})}">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Friend history · Koto Pai</title>
-  <link rel="stylesheet" th:href="@{/css/kotopai.css}">
 </head>
 <body>
-  <main class="wrap dashboard">
+  <main class="dashboard">
     <header class="page-head">
       <div>
         <a class="back" th:href="@{/ledger}">← Balances</a>
-        <h1 th:text="${'History with Friend #' + friendId}">Friend history</h1>
+        <h1 th:text="${'History with ' + @people.nameOf(friendId)}">Friend history</h1>
       </div>
     </header>
 
@@ -19,7 +17,7 @@
       <p th:if="${#lists.isEmpty(history)}" class="empty">No debt history with this friend.</p>
       <article class="history-row" th:each="debt : ${history}">
         <div>
-          <b th:text="${debt.debtorId == userId ? 'You → Friend #' + friendId : 'Friend #' + friendId + ' → You'}">Direction</b>
+          <b th:text="${debt.debtorId == userId ? 'You → ' + @people.nameOf(friendId) : @people.nameOf(friendId) + ' → You'}">Direction</b>
           <small th:text="${debt.origin + (debt.outingId == null ? '' : ' · Outing #' + debt.outingId)}">OUTING</small>
         </div>
         <div class="history-money">
@@ -35,7 +33,7 @@
         <p th:if="${#lists.isEmpty(activities)}" class="empty">No payment, dispute or delegation activity yet.</p>
         <article class="timeline-row" th:each="event : ${activities}">
           <span class="timeline-dot"></span>
-          <div><b th:text="${event.description}">Activity</b><small th:text="${event.type + ' · ' + event.createdAt}">TYPE</small></div>
+          <div><b th:text="${event.description}">Activity</b><small th:text="${#strings.capitalize(#strings.replace(#strings.toLowerCase(event.type), '_', ' ')) + ' · ' + #strings.replace(#strings.substring(event.createdAt.toString(), 0, 16), 'T', ' ') + ' UTC'}">TYPE</small></div>
           <strong th:if="${event.amount != null}" th:text="${'৳' + event.amount}">৳0.00</strong>
         </article>
       </div>
