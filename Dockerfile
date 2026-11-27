@@ -6,17 +6,24 @@
 # ------------------------------------------------------------------------------
 # Stage 1: Build Application Artifact with Maven
 # ------------------------------------------------------------------------------
-FROM eclipse-temurin:21-jdk-alpine AS builder
+# Maven ships inside this image. The Maven wrapper (./mvnw) downloads Maven from Maven Central at build time,
+# and shared build hosts such as Render get "429 Too Many Requests" there, which failed a deployment.
+FROM maven:3.9-eclipse-temurin-21-alpine AS builder
 WORKDIR /workspace
 
-# Copy Maven wrapper and POM first for dependency caching
-COPY .mvn .mvn
-COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+# Copy the POM first so dependency downloads are cached. Retry because Maven Central can rate-limit shared hosts.
+COPY pom.xml ./
+RUN for i in 1 2 3 4 5; do \
+      mvn -B -q dependency:go-offline && exit 0; \
+      echo "Dependency download failed (attempt $i), retrying..."; sleep $((i * 15)); \
+    done; exit 1
 
 # Copy application source code and compile package
 COPY src src
-RUN ./mvnw clean package -DskipTests=true -B
+RUN for i in 1 2 3; do \
+      mvn -B -q clean package -DskipTests=true && exit 0; \
+      echo "Build failed (attempt $i), retrying..."; sleep $((i * 15)); \
+    done; exit 1
 
 # ------------------------------------------------------------------------------
 # Stage 2: Extract Spring Boot Layered JAR
