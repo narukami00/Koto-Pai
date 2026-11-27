@@ -11,17 +11,19 @@
 FROM maven:3.9-eclipse-temurin-21-alpine AS builder
 WORKDIR /workspace
 
-# Copy the POM first so dependency downloads are cached. Retry because Maven Central can rate-limit shared hosts.
+# Dependencies come from Google's mirror of Maven Central (maven-settings.xml) because Central itself answers
+# HTTP 429 to Render's shared build IPs. The POM is copied first so downloads are cached; the loop retries.
+COPY maven-settings.xml /tmp/maven-settings.xml
 COPY pom.xml ./
 RUN for i in 1 2 3 4 5; do \
-      mvn -B -q dependency:go-offline && exit 0; \
+      mvn -s /tmp/maven-settings.xml -B -q dependency:go-offline && exit 0; \
       echo "Dependency download failed (attempt $i), retrying..."; sleep $((i * 15)); \
     done; exit 1
 
 # Copy application source code and compile package
 COPY src src
 RUN for i in 1 2 3; do \
-      mvn -B -q clean package -DskipTests=true && exit 0; \
+      mvn -s /tmp/maven-settings.xml -B -q clean package -DskipTests=true && exit 0; \
       echo "Build failed (attempt $i), retrying..."; sleep $((i * 15)); \
     done; exit 1
 
