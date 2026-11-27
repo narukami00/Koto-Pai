@@ -20,10 +20,11 @@ RUN for i in 1 2 3 4 5; do \
       echo "Dependency download failed (attempt $i), retrying..."; sleep $((i * 15)); \
     done; exit 1
 
-# Copy application source code and compile package
+# Copy application source code and compile package.
+# Tests run in CI, not here. The pom wires Surefire to -DskipUTs (plain -DskipTests is ignored), so use that.
 COPY src src
 RUN for i in 1 2 3; do \
-      mvn -s /tmp/maven-settings.xml -B -q clean package -DskipTests=true && exit 0; \
+      mvn -s /tmp/maven-settings.xml -B -q clean package -DskipUTs=true && exit 0; \
       echo "Build failed (attempt $i), retrying..."; sleep $((i * 15)); \
     done; exit 1
 
