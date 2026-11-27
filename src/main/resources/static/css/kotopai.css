@@ -493,6 +493,13 @@ button.button { border: 0; font-size: inherit; cursor: pointer; }
 .muted a, .empty a, .help a { color: var(--teal); font-weight: 600; }
 body { overflow-x: hidden; }
 
+/* friendly error page (templates/error.html) */
+.error-card { text-align: center; max-width: 560px; margin: 48px auto; padding: 36px 24px; }
+.error-card .error-code { display: block; font-size: 64px; font-weight: 800; line-height: 1; color: var(--orange); margin-bottom: 10px; }
+.error-card h1 { font-size: 24px; margin-bottom: 8px; }
+.error-card .muted { margin: 0 0 22px; }
+.error-actions { justify-content: center; }
+
 /* ---------- outing wizard ---------- */
 .wiz-card { margin-top: 12px; }
 .wiz-card h2 { font-size: 16px; }
