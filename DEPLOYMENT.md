@@ -155,7 +155,21 @@ about a minute to wake; the monitoring below keeps it awake).
      that shell, or set it to any value). It runs beside the local stack
      (http://localhost:3000 is the *local* copy of the app).
    - Scraping every 15 s also keeps the free Render instance awake while it runs.
-   - Alternative without Docker: Grafana Cloud (free) → *Metrics Endpoint* connection to
-     `https://koto-pai-aatd.onrender.com/actuator/prometheus` with basic auth, then import `monitoring/grafana/dashboards/kotopai.json`.
+   - Prefer an always-on, shareable dashboard? Use hosted Grafana Cloud instead (next section).
+
+#### Hosted dashboard with Grafana Cloud (free, always on, public URL)
+Prometheus and Grafana above run on your laptop, so they only work while it is on. Grafana Cloud runs both for you:
+1. Create a free account at https://grafana.com (a "stack" such as `<name>.grafana.net` is created for you).
+2. In the stack: **Connections → Add new connection → "Metrics Endpoint"** (scrapes a URL for you). Fill in:
+   - Scrape job name: `kotopai`
+   - URL: `https://koto-pai-aatd.onrender.com/actuator/prometheus`
+   - Authentication: Basic, username `prometheus`, password = the `METRICS_PASSWORD` set on Render
+   - Test the connection, then save. Metrics appear within a couple of minutes.
+3. **Dashboards → New → Import → Upload JSON file** → `monitoring/grafana-cloud/kotopai-dashboard.json`,
+   choose your Grafana Cloud Prometheus data source (named like `grafanacloud-<stack>-prom`) and import.
+   Pick `kotopai` in the **Scrape job** dropdown at the top of the dashboard.
+- That file is the same dashboard as `monitoring/grafana/dashboards/kotopai.json`, made portable (data source and job name are chosen on import).
+- The password is typed into Grafana Cloud's form only; it is never stored in this repository.
+- Grafana Cloud's scraper also wakes the free Render instance, so the first minute after a long idle can show a gap.
 3. **Logs:** Render dashboard → Logs, filter by `ERROR` after a release.
 
