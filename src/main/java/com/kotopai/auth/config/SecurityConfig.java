@@ -36,6 +36,10 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/images/**",
                                 "/favicon.ico",
+                                // Error pages render for anonymous visitors too. Without this an unauthenticated
+                                // request that errors gets bounced to /login and "/error" is saved as the
+                                // post-login target (login then lands on a raw JSON error page).
+                                "/error",
                                 // Liveness/readiness probes (Docker, Render) must work without a login.
                                 // Other actuator endpoints stay protected.
                                 "/actuator/health",
