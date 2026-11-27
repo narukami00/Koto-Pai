@@ -30,7 +30,8 @@ docker compose logs -f app
 ### Access Application
 - Web Dashboard: [http://localhost:8080](http://localhost:8080)
 - Actuator Health Check: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
-- Default Seed Administrator: `admin` / `password123`
+- Demo logins (Compose starts with the `demo` profile): `admin` / `password123` (admin), `rafsan10`, `tanvir_h`, `nabila_r`, `samiha` (all `password123`), with three demo outings. See `MANUAL_TEST.md`.
+- If port 8080 is taken (Docker Desktop can hold it), use another: `HOST_APP_PORT=8082 docker compose up --build`.
 
 ### Stop Services
 ```bash
@@ -48,7 +49,8 @@ docker compose down -v
 
 | Variable | Default (Compose) | Description |
 |---|---|---|
-| `SPRING_PROFILES_ACTIVE` | `prod` | Active Spring profile (`prod` or `h2`) |
+| `SPRING_PROFILES_ACTIVE` | `prod,demo` | `prod` = PostgreSQL; add `demo` to create demo users/outings; `h2` = in-memory (local only). Use plain `prod` for a real deployment |
+| `PORT` | `8080` | Port the app listens on (hosting platforms such as Render set this for you) |
 | `DB_HOST` | `postgres` | Hostname of PostgreSQL server |
 | `DB_PORT` | `5432` | Port of PostgreSQL server |
 | `DB_NAME` | `kotopai` | Database name |
@@ -84,11 +86,15 @@ docker run -d \
 
 ## 5. Cloud Platform Deployments
 
-### Render / Railway / Fly.io
-1. Connect repository root containing `Dockerfile`.
-2. Set environment variables:
-   - `SPRING_PROFILES_ACTIVE`: `prod`
-   - `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSLMODE` (from your PostgreSQL addon or Supabase).
-3. Set health check path to `/actuator/health`.
-4. Expose port `8080`.
+### Render (app) + Neon (database)
+1. **Neon:** create a project and database; copy the host, database, user and password from the connection details (use the direct host, not a URL).
+2. **Render:** New → Web Service → connect the repository → Runtime **Docker** (it uses the `Dockerfile`).
+3. Environment variables on the service:
+   - `SPRING_PROFILES_ACTIVE` = `prod` (add `,demo` only if you want the demo accounts on the live site)
+   - `DB_HOST`, `DB_PORT` (`5432`), `DB_NAME`, `DB_USER`, `DB_PASSWORD` from Neon
+   - `DB_SSLMODE` = `require` (Neon needs SSL)
+4. Health check path: `/actuator/health` (public, returns `{"status":"UP"}`).
+5. Render sets `PORT` itself; the app reads it. No port setting is needed.
+
+The same steps work on Railway or Fly.io (they also build the `Dockerfile` and provide `PORT`).
 

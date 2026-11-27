@@ -36,7 +36,9 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: prod
+      # prod = PostgreSQL settings; demo = also create the demo users and outings on first start.
+      # For a real deployment set SPRING_PROFILES_ACTIVE=prod so no demo accounts exist.
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod,demo}
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-kotopai}

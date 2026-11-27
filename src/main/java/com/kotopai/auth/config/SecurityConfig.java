@@ -35,7 +35,11 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/favicon.ico"
+                                "/favicon.ico",
+                                // Liveness/readiness probes (Docker, Render) must work without a login.
+                                // Other actuator endpoints stay protected.
+                                "/actuator/health",
+                                "/actuator/health/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/admin/**",
