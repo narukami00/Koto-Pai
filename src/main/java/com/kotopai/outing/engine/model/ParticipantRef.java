@@ -14,9 +14,20 @@ public sealed interface ParticipantRef {
         return new Guest(guestId, ownerUserId);
     }
 
+    /** Short human-readable name for error messages, e.g. "user #1" or "guest #10". */
+    String label();
+
     record User(long userId) implements ParticipantRef {
+        @Override
+        public String label() {
+            return "user #" + userId;
+        }
     }
 
     record Guest(long guestId, long ownerUserId) implements ParticipantRef {
+        @Override
+        public String label() {
+            return "guest #" + guestId;
+        }
     }
 }

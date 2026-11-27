@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page('Welcome', 'home', ~{::main})}">
+<head>
+  <title>Welcome · Koto Pai</title>
+</head>
+<body>
+<main class="dashboard">
+  <section class="hero">
+    <small>Welcome</small>
+    <strong>Koto <span>Pai?</span></strong>
+    <p style="margin: 0 0 18px;">Split the bill fairly, see who owes what, and settle up with your friends.</p>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <a class="btn" th:href="@{/register}">Create an account</a>
+      <a class="btn line" th:href="@{/login}" style="color: #fff; border-color: rgba(255,255,255,.5);">Log in</a>
+    </div>
+  </section>
+
+  <section class="section-block">
+    <div class="sec"><h2>How it works</h2></div>
+    <div class="card">
+      <div class="row"><div class="grow"><b>1 · Make an outing</b><small>Add what was ordered, who shared each item and who paid.</small></div></div>
+      <div class="row"><div class="grow"><b>2 · See the exact split</b><small>Percentages, equal shares and personal items, down to the last poisha.</small></div></div>
+      <div class="row"><div class="grow"><b>3 · Settle up</b><small>Friends see what they owe, pay it back and confirm it.</small></div></div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

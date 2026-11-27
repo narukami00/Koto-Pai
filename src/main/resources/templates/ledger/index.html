@@ -9,7 +9,8 @@
 <body>
   <main class="wrap dashboard">
     <header class="page-head">
-      <div><a class="back" th:href="@{/(userId=${summary.userId})}">← Home</a><h1>Balances</h1></div>
+      <div><a class="back" th:href="@{/}">← Home</a><h1>Balances</h1></div>
+      <div class="head-actions"><a class="button secondary" th:href="@{/settle}">Settle up</a><a class="button secondary" th:href="@{/activity}">Activity</a></div>
     </header>
 
     <section class="hero">
@@ -26,7 +27,7 @@
       <div class="card balance-list">
         <p th:if="${#lists.isEmpty(summary.balances)}" class="empty">You are all settled up.</p>
         <a class="balance-row" th:each="balance : ${summary.balances}"
-           th:href="${balance.type.name() == 'USER'} ? @{/ledger/friends/{id}(id=${balance.counterpartyId},userId=${summary.userId})} : '#guest'">
+           th:href="${balance.type.name() == 'USER'} ? @{/ledger/friends/{id}(id=${balance.counterpartyId})} : '#guest'">
           <span class="avatar" th:text="${balance.type.name() == 'GUEST' ? 'G' : 'F'}">F</span>
           <span class="balance-person">
             <b th:text="${balance.type.name() == 'GUEST' ? 'Guest #' + balance.counterpartyId : 'Friend #' + balance.counterpartyId}">Friend</b>

@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.kotopai.common.events.OutingUpdatedEvent;
 import com.kotopai.ledger.service.DebtService;
 
 @Component
@@ -15,12 +16,17 @@ public class OutingDebtEventListener {
 		this.debts = debts;
 	}
 
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+	@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT, fallbackExecution = true)
 	public void onOutingActivated(OutingActivatedEvent event) {
 		debts.generateDebts(event.outingId());
 	}
 
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+	@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT, fallbackExecution = true)
+	public void onOutingUpdated(OutingUpdatedEvent event) {
+		debts.generateDebts(event.outingId());
+	}
+
+	@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT, fallbackExecution = true)
 	public void onOutingCancelled(OutingCancelledEvent event) {
 		debts.voidDebts(event.outingId());
 	}

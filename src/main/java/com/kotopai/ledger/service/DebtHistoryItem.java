@@ -15,5 +15,8 @@ public record DebtHistoryItem(
 		BigDecimal remaining,
 		DebtStatus status,
 		DebtOrigin origin,
+		String disputeReason,
+		Long disputedById,
+		Instant disputedAt,
 		Instant createdAt) {
 }

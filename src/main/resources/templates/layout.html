@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="page(title, activeNav, content)">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title th:text="${title != null && !title.isBlank() ? title + ' · Koto Pai' : 'Koto Pai'}">Koto Pai</title>
+  <link rel="stylesheet" th:href="@{/css/kotopai.css}">
+</head>
+<body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.6 0 4.5 1.8 4.5 4.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6.5 8-6.5s8 2.5 8 6.5"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7M10 20a2 2 0 0 0 4 0"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+    <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  </svg>
+
+  <div class="shell">
+    <!-- Desktop sidebar -->
+    <aside class="side" aria-label="Primary navigation">
+      <a class="brand" th:href="@{/}">Koto <span>Pai?</span></a>
+
+      <a class="tab" th:classappend="${activeNav == 'home'} ? ' on'" th:href="@{/}">
+        <svg class="i"><use href="#i-home"/></svg>Home
+      </a>
+      <a class="tab" th:classappend="${activeNav == 'friends'} ? ' on'" th:href="@{/friends}">
+        <svg class="i"><use href="#i-users"/></svg>Friends
+      </a>
+      <a class="tab cta" th:href="@{/outings/new}">
+        <svg class="i"><use href="#i-plus"/></svg>New outing
+      </a>
+      <a class="tab" th:classappend="${activeNav == 'settle'} ? ' on'" th:href="@{/settle}">
+        <svg class="i"><use href="#i-swap"/></svg>Settle up
+      </a>
+      <a class="tab" th:classappend="${activeNav == 'activity'} ? ' on'" th:href="@{/activity}">
+        <svg class="i"><use href="#i-clock"/></svg>Activity
+      </a>
+      <a class="tab" th:classappend="${activeNav == 'profile'} ? ' on'" th:href="@{/profile}">
+        <svg class="i"><use href="#i-user"/></svg>Profile
+      </a>
+      <a sec:authorize="hasRole('ADMIN')" class="tab" th:classappend="${activeNav == 'admin'} ? ' on'" th:href="@{/admin}">
+        <svg class="i"><use href="#i-shield"/></svg>Admin
+      </a>
+
+      <div class="side-foot">
+        <div class="me" th:if="${navUser != null}">
+          <div class="av" th:text="${navUser.initial}">U</div>
+          <div class="me-meta">
+            <b th:text="${navUser.displayName}">User</b>
+            <span th:text="${'@' + navUser.userCode}">@user</span>
+          </div>
+          <form th:action="@{/logout}" method="post" class="logout-form">
+            <button type="submit" class="logout-btn">Log out</button>
+          </form>
+        </div>
+        <div class="me-guest" th:if="${navUser == null}">
+          <a class="btn sm sec2" th:href="@{/login}">Log in</a>
+          <a class="btn sm or" th:href="@{/register}">Sign up</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main page content -->
+    <div class="content">
+      <div class="shell-inner">
+        <div class="topbar">
+          <a class="topbar-brand" th:href="@{/}">Koto <span>Pai?</span></a>
+          <div class="topbar-actions">
+            <a th:if="${navUser != null}" class="icon-btn" th:href="@{/notifications}" aria-label="Notifications">
+              <svg class="i"><use href="#i-bell"/></svg>
+              <span class="dot" th:if="${unreadNotificationCount != null and unreadNotificationCount > 0}"></span>
+            </a>
+            <a th:if="${navUser == null}" class="btn sm sec2" th:href="@{/login}">Log in</a>
+          </div>
+        </div>
+
+        <div th:if="${flashSuccess}" class="flash ok" role="status" th:text="${flashSuccess}"></div>
+        <div th:if="${flashError}" class="flash err" role="alert" th:text="${flashError}"></div>
+
+        <th:block th:replace="${content}"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile bottom tab bar -->
+  <nav class="tabbar" aria-label="Mobile navigation">
+    <a class="tab" th:classappend="${activeNav == 'home'} ? ' on'" th:href="@{/}">
+      <svg class="i"><use href="#i-home"/></svg>Home
+    </a>
+    <a class="tab" th:classappend="${activeNav == 'friends'} ? ' on'" th:href="@{/friends}">
+      <svg class="i"><use href="#i-users"/></svg>Friends
+    </a>
+    <a class="tab fab" th:href="@{/outings/new}">
+      <span><svg class="i"><use href="#i-plus"/></svg></span>New
+    </a>
+    <a class="tab" th:classappend="${activeNav == 'activity'} ? ' on'" th:href="@{/activity}">
+      <svg class="i"><use href="#i-clock"/></svg>Activity
+    </a>
+    <a class="tab" th:classappend="${activeNav == 'profile'} ? ' on'" th:href="@{/profile}">
+      <svg class="i"><use href="#i-user"/></svg>Profile
+    </a>
+  </nav>
+</body>
+</html>
+

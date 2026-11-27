@@ -96,7 +96,7 @@ public class LedgerService {
 				.toList();
 	}
 
-	private static DebtHistoryItem toHistoryItem(Debt debt) {
+	public static DebtHistoryItem toHistoryItem(Debt debt) {
 		return new DebtHistoryItem(
 				debt.getId(),
 				debt.getOutingId(),
@@ -106,6 +106,9 @@ public class LedgerService {
 				debt.getRemaining(),
 				debt.getStatus(),
 				debt.getOrigin(),
+				debt.getDisputeReason(),
+				debt.getDisputedById(),
+				debt.getDisputedAt(),
 				debt.getCreatedAt());
 	}
 

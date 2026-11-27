@@ -123,7 +123,7 @@ class LedgerPhaseOneIT {
 		debts.save(Debt.forOuting(1L, 2L, 1L, money("100.00")));
 		debts.save(Debt.forOuting(2L, 1L, 3L, money("40.00")));
 		Debt disputed = Debt.forOuting(3L, 4L, 1L, money("60.00"));
-		disputed.dispute();
+		disputed.dispute(4L, "Wrong split");
 		debts.save(disputed);
 		guestDebts.save(new GuestDebt(1L, 9L, 1L, money("25.00")));
 
@@ -144,7 +144,7 @@ class LedgerPhaseOneIT {
 	void returnsCompletePerFriendHistory() {
 		debts.save(Debt.forOuting(1L, 2L, 1L, money("100.00")));
 		Debt disputed = Debt.forOuting(2L, 1L, 2L, money("25.00"));
-		disputed.dispute();
+		disputed.dispute(1L, "Wrong participant");
 		debts.save(disputed);
 		debts.save(Debt.forOuting(3L, 3L, 1L, money("50.00")));
 
@@ -158,13 +158,13 @@ class LedgerPhaseOneIT {
 	void rendersLedgerAndFriendHistoryTemplates() throws Exception {
 		debts.save(Debt.forOuting(1L, 2L, 1L, money("100.00")));
 
-		mvc.perform(get("/ledger").param("userId", "1").with(user("test-user")))
+		mvc.perform(get("/ledger").with(user("1")))
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString("Net balance")))
 				.andExpect(content().string(containsString("Friend #2")))
 				.andExpect(content().string(containsString("৳100.00")));
 
-		mvc.perform(get("/ledger/friends/2").param("userId", "1").with(user("test-user")))
+		mvc.perform(get("/ledger/friends/2").with(user("1")))
 				.andExpect(status().isOk())
 				.andExpect(content().string(containsString("History with Friend #2")))
 				.andExpect(content().string(containsString("Friend #2 → You")));

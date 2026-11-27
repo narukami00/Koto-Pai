@@ -1,39 +1,31 @@
 package com.kotopai.home;
 
-import org.springframework.jdbc.core.JdbcTemplate;
+import com.kotopai.auth.service.KotopaiUserDetails;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import com.kotopai.ledger.service.LedgerService;
-import com.kotopai.ledger.service.LedgerSummary;
-
+/**
+ * The signed-in user's dashboard. It always shows the caller's own ledger and outings; the old {@code ?userId=}
+ * preview parameter was removed because it let anyone read another user's balances. The path is public in the
+ * security config, so visitors who are not signed in get the welcome page instead.
+ */
 @Controller
 public class HomeController {
 
-    private final JdbcTemplate jdbc;
-    private final LedgerService ledger;
+    private final HomePageFacade home;
 
-    public HomeController(JdbcTemplate jdbc, LedgerService ledger) {
-        this.jdbc = jdbc;
-        this.ledger = ledger;
+    public HomeController(HomePageFacade home) {
+        this.home = home;
     }
 
     @GetMapping("/")
-    public String home(@RequestParam(required = false) Long userId, Model model) {
-        model.addAttribute("ledger", userId == null ? LedgerSummary.empty(0) : ledger.summaryFor(userId));
-        model.addAttribute("ledgerUserId", userId);
-        try {
-            String version = jdbc.queryForObject("select version()", String.class);
-            String now = jdbc.queryForObject("select cast(current_timestamp as varchar)", String.class);
-            model.addAttribute("dbUp", true);
-            model.addAttribute("dbVersion", version);
-            model.addAttribute("dbTime", now);
-        } catch (Exception e) {
-            model.addAttribute("dbUp", false);
-            model.addAttribute("dbError", e.getClass().getSimpleName());
+    public String home(@AuthenticationPrincipal KotopaiUserDetails currentUser, Model model) {
+        if (currentUser == null) {
+            return "landing";
         }
+        model.addAttribute("home", home.forUser(currentUser.getId(), currentUser.getDisplayName()));
         return "home";
     }
 }

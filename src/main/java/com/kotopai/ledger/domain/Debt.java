@@ -48,6 +48,15 @@ public class Debt {
 	@Column(nullable = false, updatable = false)
 	private Instant createdAt;
 
+	@Column(name = "dispute_reason", length = 500)
+	private String disputeReason;
+
+	@Column(name = "disputed_by_id")
+	private Long disputedById;
+
+	@Column(name = "disputed_at")
+	private Instant disputedAt;
+
 	@Version
 	private long version;
 
@@ -123,8 +132,33 @@ public class Debt {
 		}
 	}
 
-	public void dispute() {
+	/** Restores exactly the amount previously removed when a delegation is reversed. */
+	public void restoreFromDelegation(BigDecimal delegatedAmount) {
+		if (status != DebtStatus.PAID && status != DebtStatus.PARTIALLY_PAID) {
+			throw new IllegalStateException("delegation reversal requires a reduced debt");
+		}
+		BigDecimal restoration = LedgerAmounts.positive(delegatedAmount, "delegatedAmount");
+		BigDecimal restored = remaining.add(restoration);
+		if (restored.compareTo(amount) > 0) {
+			throw new IllegalArgumentException("delegation reversal cannot exceed original debt");
+		}
+		remaining = restored;
+		status = remaining.compareTo(amount) == 0 ? DebtStatus.OPEN : DebtStatus.PARTIALLY_PAID;
+	}
+
+	public void dispute(Long actorId, String reason) {
+		long validatedActorId = LedgerAmounts.positiveId(actorId, "actorId");
+		if (reason == null || reason.isBlank()) {
+			throw new IllegalArgumentException("dispute reason must not be blank");
+		}
+		String normalizedReason = reason.strip();
+		if (normalizedReason.length() > 500) {
+			throw new IllegalArgumentException("dispute reason must not exceed 500 characters");
+		}
 		transitionTo(DebtStatus.DISPUTED);
+		this.disputedById = validatedActorId;
+		this.disputeReason = normalizedReason;
+		this.disputedAt = Instant.now();
 	}
 
 	public void reopen() {
@@ -176,6 +210,18 @@ public class Debt {
 
 	public Instant getCreatedAt() {
 		return createdAt;
+	}
+
+	public String getDisputeReason() {
+		return disputeReason;
+	}
+
+	public Long getDisputedById() {
+		return disputedById;
+	}
+
+	public Instant getDisputedAt() {
+		return disputedAt;
 	}
 
 	public long getVersion() {

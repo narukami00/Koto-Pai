@@ -1,65 +1,84 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout :: page('Home', 'home', ~{::main})}">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Koto Pai</title>
-  <link rel="stylesheet" th:href="@{/css/kotopai.css}">
+  <title>Home · Koto Pai</title>
 </head>
 <body>
-  <main class="wrap dashboard">
-    <header class="page-head">
-      <div>
-        <h1 class="brand">Koto <span>Pai?</span></h1>
-        <p class="muted">Hello, world! The app is running.</p>
-      </div>
-      <a th:if="${ledgerUserId != null}" class="button secondary"
-         th:href="@{/ledger(userId=${ledgerUserId})}">Full ledger</a>
-    </header>
+<main class="dashboard">
+  <header class="page-head">
+    <div>
+      <h1 class="brand">Hi, <span th:text="${home.displayName}">Rafsan</span></h1>
+      <p class="muted">Here is where you stand with your friends.</p>
+    </div>
+    <a class="btn" th:href="@{/outings/new}"><svg class="i"><use href="#i-plus"/></svg><span>New outing</span></a>
+  </header>
 
-    <section class="hero">
-      <small>Net balance</small>
-      <strong th:text="${'৳' + ledger.net}">৳0.00</strong>
-      <div class="hero-split">
-        <div><small>You’ll get</small><b th:text="${'৳' + ledger.totalReceivable}">৳0.00</b></div>
-        <div><small>You owe</small><b th:text="${'৳' + ledger.totalPayable}">৳0.00</b></div>
-      </div>
-      <p th:if="${ledgerUserId == null}" class="hero-help">
-        Add <code>?userId=1</code> to preview a user’s ledger until authentication is integrated.
-      </p>
-    </section>
+  <section class="hero">
+    <small>Net balance</small>
+    <strong th:text="${(home.net.signum() < 0 ? '−' : '') + '৳' + home.net.abs()}">৳0.00</strong>
+    <div class="hero-split">
+      <div><small>You’ll get</small><b th:text="${'৳' + home.receivable}">৳0.00</b></div>
+      <div><small>You owe</small><b th:text="${'৳' + home.payable}">৳0.00</b></div>
+    </div>
+  </section>
 
-    <section class="section-block">
-      <div class="section-title"><h2>Balances</h2></div>
-      <div class="card balance-list">
-        <p th:if="${#lists.isEmpty(ledger.balances)}" class="empty">No open balances.</p>
-        <a class="balance-row" th:each="balance : ${ledger.balances}"
-           th:href="${balance.type.name() == 'USER'} ? @{/ledger/friends/{id}(id=${balance.counterpartyId},userId=${ledger.userId})} : '#guest'">
-          <span class="avatar" th:text="${balance.type.name() == 'GUEST' ? 'G' : 'F'}">F</span>
+  <section class="section-block">
+    <div class="sec"><h2>Balances</h2></div>
+    <div class="card balance-list">
+      <p th:if="${home.settledUp}" class="empty">You are all settled up. Nothing owed either way.</p>
+      <th:block th:each="b : ${home.balances}">
+        <a th:if="${b.linkable}" class="balance-row" th:href="@{/ledger/friends/{id}(id=${b.counterpartyId})}">
+          <span class="avatar" th:text="${b.initial}">F</span>
           <span class="balance-person">
-            <b th:text="${balance.type.name() == 'GUEST' ? 'Guest #' + balance.counterpartyId : 'Friend #' + balance.counterpartyId}">Friend</b>
-            <small th:text="${balance.type.name()}">USER</small>
+            <b th:text="${b.name}">Tanvir</b>
+            <small th:text="${b.owedToYou ? 'owes you' : 'you owe'}">owes you</small>
           </span>
-          <span class="balance-amount" th:classappend="${balance.balance.signum() >= 0 ? ' get' : ' owe'}"
-                th:text="${'৳' + balance.balance}">৳0.00</span>
+          <span class="balance-amount" th:classappend="${b.owedToYou ? ' get' : ' owe'}"
+                th:text="${'৳' + b.amount.abs()}">৳0.00</span>
         </a>
-      </div>
-    </section>
-
-    <section class="card database-card">
-      <h2>Database</h2>
-      <p th:if="${dbUp}"><span class="tag ok">Connected</span></p>
-      <p th:unless="${dbUp}"><span class="tag warn">Not connected</span></p>
-
-      <dl th:if="${dbUp}">
-        <dt>Server</dt><dd th:text="${dbVersion}">PostgreSQL</dd>
-        <dt>Server time</dt><dd th:text="${dbTime}">now</dd>
-      </dl>
-      <p th:unless="${dbUp}" class="muted">
-        Error: <code th:text="${dbError}">Exception</code>.
-        Check your <code>.env</code> (see docs/SUPABASE_SETUP.md).
+        <div th:unless="${b.linkable}" class="balance-row">
+          <span class="avatar" th:text="${b.initial}">G</span>
+          <span class="balance-person">
+            <b><span th:text="${b.name}">Rahim</span> <span class="tag guest">Guest</span></b>
+            <small th:text="${b.owedToYou ? 'owes you' : 'you owe'}">owes you</small>
+          </span>
+          <span class="balance-amount" th:classappend="${b.owedToYou ? ' get' : ' owe'}"
+                th:text="${'৳' + b.amount.abs()}">৳0.00</span>
+        </div>
+      </th:block>
+      <p th:if="${home.hiddenBalances > 0}" class="empty">
+        and <span th:text="${home.hiddenBalances}">2</span> more.
+        <a th:href="@{/ledger}">See the full ledger</a>
       </p>
-    </section>
-  </main>
+    </div>
+  </section>
+
+  <section class="section-block">
+    <div class="sec">
+      <h2>Active outings</h2>
+      <a th:href="@{/outings}">All outings</a>
+    </div>
+    <div class="card">
+      <p th:if="${#lists.isEmpty(home.recentOutings)}" class="empty">
+        No active outings. <a th:href="@{/outings/new}">Start one</a> and split the bill.
+      </p>
+      <a th:each="o : ${home.recentOutings}" class="row" th:href="@{/outings/{id}(id=${o.id})}"
+         style="text-decoration: none; color: inherit;">
+        <div class="av" th:text="${#strings.substring(o.title, 0, 1).toUpperCase()}">B</div>
+        <div class="grow">
+          <b th:text="${o.title}">Burger night</b>
+          <small><span th:text="${#temporals.format(o.date, 'd MMM yyyy')}">6 Nov 2026</span>
+            · <span th:text="${o.mine ? 'by you' : 'by ' + o.creatorName}">by you</span></small>
+        </div>
+        <div class="amt" th:text="${'৳' + o.billTotal}">৳1900.00</div>
+      </a>
+    </div>
+    <p th:if="${home.draftCount > 0}" class="muted" style="margin-top: 10px;">
+      You have <b th:text="${home.draftCount}">1</b> unfinished
+      <a th:href="@{/outings}" th:text="${home.draftCount == 1 ? 'draft' : 'drafts'}">draft</a>.
+    </p>
+  </section>
+</main>
 </body>
 </html>

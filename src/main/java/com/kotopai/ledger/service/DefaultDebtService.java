@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 
 import com.kotopai.ledger.DebtSimplifier;
 import com.kotopai.ledger.NetPosition;
@@ -15,6 +16,7 @@ import com.kotopai.ledger.Transfer;
 import com.kotopai.ledger.domain.Debt;
 import com.kotopai.ledger.domain.GuestDebt;
 import com.kotopai.ledger.domain.GuestDebtStatus;
+import com.kotopai.ledger.event.DebtAddedEvent;
 import com.kotopai.ledger.repository.DebtRepository;
 import com.kotopai.ledger.repository.GuestDebtRepository;
 import com.kotopai.ledger.repository.PaymentRepository;
@@ -31,18 +33,21 @@ public class DefaultDebtService implements DebtService {
 	private final GuestDebtRepository guestDebts;
 	private final OutingSettlementProvider settlements;
 	private final DebtSimplifier simplifier;
+	private final ApplicationEventPublisher events;
 
 	public DefaultDebtService(
 			DebtRepository debts,
 			PaymentRepository payments,
 			GuestDebtRepository guestDebts,
 			OutingSettlementProvider settlements,
-			DebtSimplifier simplifier) {
+			DebtSimplifier simplifier,
+			ApplicationEventPublisher events) {
 		this.debts = debts;
 		this.payments = payments;
 		this.guestDebts = guestDebts;
 		this.settlements = settlements;
 		this.simplifier = simplifier;
+		this.events = events;
 	}
 
 	@Override
@@ -80,7 +85,9 @@ public class DefaultDebtService implements DebtService {
 						Long.valueOf(transfer.creditor()),
 						transfer.amount()))
 				.toList();
-		debts.saveAll(generatedDebts);
+		debts.saveAllAndFlush(generatedDebts);
+		generatedDebts.forEach(debt -> events.publishEvent(new DebtAddedEvent(
+				debt.getId(), outingId, debt.getDebtorId(), debt.getCreditorId(), debt.getAmount())));
 
 		List<GuestDebt> generatedGuestDebts = new ArrayList<>();
 		for (GuestNetPosition guest : snapshot.guestPositions()) {

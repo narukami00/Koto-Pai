@@ -37,7 +37,7 @@ class SmokeIT {
     void homePageRenders() throws Exception {
         mvc.perform(get("/"))
             .andExpect(status().isOk())
-            .andExpect(content().string(containsString("Hello, world!")));
+            .andExpect(content().string(containsString("Split the bill fairly")));
     }
 
     @Test
