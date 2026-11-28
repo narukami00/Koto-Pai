@@ -1,0 +1,11 @@
+# LaTeX build intermediates (the PDF itself is committed)
+*.aux
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+.ruff_cache/

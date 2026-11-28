@@ -10,7 +10,7 @@
 ![Java](https://img.shields.io/badge/Java-17%20%7C%2021-b07219)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1-6db33f)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791)
-![Tests](https://img.shields.io/badge/tests-729%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-760%20passing-brightgreen)
 ![Docker](https://img.shields.io/badge/Docker-multi--stage-2496ed)
 
 **[Live app](https://koto-pai-aatd.onrender.com)** ·
@@ -190,7 +190,8 @@ modules knowing they exist.
 ### 2.5 Accounts, roles and admin
 
 Registration (with confirm-password), login and profile. Two roles: `USER` and `ADMIN`. The admin console shows
-platform statistics, lists users and changes roles; everyone else gets a friendly 403 page.
+platform statistics, lists and searches users (by name, handle or e-mail) and changes roles; everyone else gets a
+friendly 403 page.
 
 <table>
   <tr>
@@ -705,7 +706,7 @@ redirect to a raw JSON page; a health check behind login reported the container 
 
 ## 9. Testing
 
-**729 tests: 634 unit and 95 integration, 0 failures.** The requirement was at least 20 and 10; both phases run on
+**760 tests: 658 unit and 102 integration, 0 failures.** The requirement was at least 20 and 10; both phases run on
 every push in CI. Engine line coverage is **100%** with an **80% gate** enforced by JaCoCo in the pipeline.
 
 | Level | Tooling | What it proves |
@@ -990,7 +991,8 @@ Three members, each owning a vertical slice end to end (service, API, pages, tes
 ├── src/main/resources/          templates (Thymeleaf) · static (CSS, wizard JS) · application*.properties
 ├── src/test/java/               unit (*Test) and integration (*IT) tests, mirroring the main packages
 ├── monitoring/                  Prometheus config · Grafana provisioning · dashboards (local and Grafana Cloud)
-├── assets/screenshots/          images used in this README
+├── assets/screenshots/          images used in this README and the report
+├── report/                      LaTeX source and PDF of the final project report
 ├── .github/workflows/ci.yml     unit → integration + Docker check → deploy
 ├── Dockerfile                   multi-stage, non-root, layered jar, health check
 ├── docker-compose.yml           app + PostgreSQL (+ optional Prometheus and Grafana)
