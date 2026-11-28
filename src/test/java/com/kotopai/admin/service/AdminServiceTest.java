@@ -2,6 +2,9 @@ package com.kotopai.admin.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -96,13 +99,43 @@ class AdminServiceTest {
     void listUsers_success() {
         when(userRepository.findAll()).thenReturn(List.of(adminUser, regularUser));
 
-        List<AdminUserView> views = adminService.listUsers();
+        List<AdminUserView> views = adminService.listUsers(null);
 
         assertThat(views).hasSize(2);
         assertThat(views.get(0).userCode()).isEqualTo("admin");
         assertThat(views.get(0).role()).isEqualTo(Role.ADMIN);
         assertThat(views.get(1).userCode()).isEqualTo("regular");
         assertThat(views.get(1).role()).isEqualTo(Role.USER);
+        verify(userRepository, never()).searchByTerm(anyString());
+    }
+
+    @Test
+    @DisplayName("listUsers treats a blank query as 'everyone'")
+    void listUsers_blankQueryReturnsEveryone() {
+        when(userRepository.findAll()).thenReturn(List.of(adminUser, regularUser));
+
+        assertThat(adminService.listUsers("   ")).hasSize(2);
+        assertThat(adminService.listUsers("")).hasSize(2);
+        verify(userRepository, never()).searchByTerm(anyString());
+    }
+
+    @Test
+    @DisplayName("listUsers searches with a trimmed, lower-cased term and maps the matches")
+    void listUsers_searchTrimsAndLowerCasesTheTerm() {
+        when(userRepository.searchByTerm("regular")).thenReturn(List.of(regularUser));
+
+        List<AdminUserView> views = adminService.listUsers("  ReGuLar ");
+
+        assertThat(views).extracting(AdminUserView::userCode).containsExactly("regular");
+        verify(userRepository, never()).findAll();
+    }
+
+    @Test
+    @DisplayName("listUsers returns an empty list when nobody matches")
+    void listUsers_searchWithNoMatches() {
+        when(userRepository.searchByTerm("nobody")).thenReturn(List.of());
+
+        assertThat(adminService.listUsers("nobody")).isEmpty();
     }
 
     @Test

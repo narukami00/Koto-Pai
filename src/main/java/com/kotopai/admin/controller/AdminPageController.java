@@ -34,12 +34,14 @@ public class AdminPageController {
     @GetMapping
     public String adminDashboard(
             @AuthenticationPrincipal KotopaiUserDetails currentUser,
+            @RequestParam(value = "q", required = false) String query,
             Model model) {
         AdminSystemStats stats = adminService.getSystemStats();
-        List<AdminUserView> users = adminService.listUsers();
+        List<AdminUserView> users = adminService.listUsers(query);
 
         model.addAttribute("stats", stats);
         model.addAttribute("users", users);
+        model.addAttribute("q", query == null ? "" : query.trim());
         model.addAttribute("currentAdminId", currentUser != null ? currentUser.getId() : null);
         return "admin";
     }

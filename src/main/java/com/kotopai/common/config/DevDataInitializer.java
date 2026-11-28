@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +24,8 @@ import com.kotopai.user.repository.UserRepository;
  * Idempotent development seed runner that populates canonical demo users and accepted
  * mutual friendships for local offline development (H2) and demo environments.
  *
- * <p>Active only under profiles {@code dev}, {@code h2}, or {@code demo}.
+ * <p>Active only under profiles {@code dev}, {@code h2}, or {@code demo}. The demo {@code admin} account is
+ * created only under {@code dev} or {@code h2}, never on a hosted {@code demo} deployment.
  */
 @Component
 @Profile({"dev", "h2", "demo"})
@@ -36,13 +39,16 @@ public class DevDataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final FriendshipRepository friendshipRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Environment environment;
 
     public DevDataInitializer(UserRepository userRepository,
                               FriendshipRepository friendshipRepository,
-                              PasswordEncoder passwordEncoder) {
+                              PasswordEncoder passwordEncoder,
+                              Environment environment) {
         this.userRepository = Objects.requireNonNull(userRepository, "userRepository must not be null");
         this.friendshipRepository = Objects.requireNonNull(friendshipRepository, "friendshipRepository must not be null");
         this.passwordEncoder = Objects.requireNonNull(passwordEncoder, "passwordEncoder must not be null");
+        this.environment = Objects.requireNonNull(environment, "environment must not be null");
     }
 
     @Override
@@ -59,7 +65,11 @@ public class DevDataInitializer implements CommandLineRunner {
         User tanvir = userRepository.save(new User("tanvir_h", "Tanvir", "tanvir@example.com", passwordHash, Role.USER));
         User nabila = userRepository.save(new User("nabila_r", "Nabila", "nabila@example.com", passwordHash, Role.USER));
         User samiha = userRepository.save(new User("samiha", "Samiha", "samiha@example.com", passwordHash, Role.USER));
-        User admin = userRepository.save(new User("admin", "Administrator", "admin@kotopai.com", passwordHash, Role.ADMIN));
+        // The well-known demo admin (published password) exists only for local runs. On a hosted deployment that
+        // uses the demo profile the administrator comes from AdminBootstrapRunner and its own secret password.
+        if (environment.acceptsProfiles(Profiles.of("dev", "h2"))) {
+            userRepository.save(new User("admin", "Administrator", "admin@kotopai.com", passwordHash, Role.ADMIN));
+        }
 
         List<Friendship> mutualFriendships = List.of(
                 acceptedFriendship(rafsan, tanvir),

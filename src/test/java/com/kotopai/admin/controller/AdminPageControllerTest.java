@@ -1,5 +1,6 @@
 package com.kotopai.admin.controller;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -7,6 +8,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -74,12 +76,44 @@ class AdminPageControllerTest {
         AdminSystemStats stats = new AdminSystemStats(10L, 5L, 8L, 20L, BigDecimal.valueOf(1500));
         AdminUserView u1 = new AdminUserView(1L, "admin", "Admin", "admin@kotopai.com", Role.ADMIN, Instant.now());
         when(adminService.getSystemStats()).thenReturn(stats);
-        when(adminService.listUsers()).thenReturn(List.of(u1));
+        when(adminService.listUsers(null)).thenReturn(List.of(u1));
 
         mvc.perform(get("/admin").with(user(adminDetails)))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin"))
-                .andExpect(model().attributeExists("stats", "users", "currentAdminId"));
+                .andExpect(model().attributeExists("stats", "users", "currentAdminId"))
+                .andExpect(model().attribute("q", ""))
+                .andExpect(content().string(containsString("Search by name")))
+                .andExpect(content().string(containsString("1 total")));
+    }
+
+    @Test
+    @DisplayName("GET /admin?q=... passes the query to the service, keeps it in the box and shows the match count")
+    void adminDashboard_search_filtersUsers() throws Exception {
+        AdminSystemStats stats = new AdminSystemStats(10L, 5L, 8L, 20L, BigDecimal.valueOf(1500));
+        AdminUserView match = new AdminUserView(2L, "tanvir_h", "Tanvir", "tanvir@example.com", Role.USER, Instant.now());
+        when(adminService.getSystemStats()).thenReturn(stats);
+        when(adminService.listUsers("  tan ")).thenReturn(List.of(match));
+
+        mvc.perform(get("/admin").param("q", "  tan ").with(user(adminDetails)))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("q", "tan"))
+                .andExpect(content().string(containsString("1 found")))
+                .andExpect(content().string(containsString("Tanvir")))
+                .andExpect(content().string(containsString("Clear")));
+    }
+
+    @Test
+    @DisplayName("GET /admin?q=... with no matches shows an empty-state message instead of a blank list")
+    void adminDashboard_searchWithNoMatches_showsEmptyState() throws Exception {
+        AdminSystemStats stats = new AdminSystemStats(10L, 5L, 8L, 20L, BigDecimal.valueOf(1500));
+        when(adminService.getSystemStats()).thenReturn(stats);
+        when(adminService.listUsers("zzz")).thenReturn(List.of());
+
+        mvc.perform(get("/admin").param("q", "zzz").with(user(adminDetails)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("No users match")))
+                .andExpect(content().string(containsString("0 found")));
     }
 
     @Test
