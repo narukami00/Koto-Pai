@@ -22,8 +22,9 @@
 
 </div>
 
-> **Try it now:** open the live app and log in as `rafsan10`, `tanvir_h`, `nabila_r`, `samiha` or `admin`
-> with password `password123` (demo accounts, public by design).
+> **Try it now:** open the live app and log in as `rafsan10`, `tanvir_h`, `nabila_r` or `samiha`
+> with password `password123` (demo accounts, public by design). The Admin Console is not public: the administrator
+> is a real account set through configuration (see [`DEPLOYMENT.md`](DEPLOYMENT.md)).
 > The app runs on a free Render instance, so the first request after idle can take about a minute while it wakes up.
 
 ---
@@ -805,7 +806,10 @@ three demo outings exist.
 | Login | Password | Role |
 |---|---|---|
 | `rafsan10`, `tanvir_h`, `nabila_r`, `samiha` | `password123` | USER |
-| `admin` | `password123` | ADMIN |
+
+There is no demo administrator under Compose. To see the Admin Console, set `KOTOPAI_ADMIN_USER_CODE` to the handle
+of an account you registered (it is promoted to ADMIN on start-up; see [`DEPLOYMENT.md`](DEPLOYMENT.md)). Under
+Option B below, the in-memory H2 run still seeds `admin` / `password123` for local use only.
 
 ### Option B: no Docker (in-memory H2, seeded data)
 
