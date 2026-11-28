@@ -82,26 +82,20 @@
 \vspace*{3.2cm}
 {\large CSE 3220}\\[6pt]
 {\large Software Engineering and Project Management Laboratory}\\[6pt]
-{\large Final Project}\\[2.4cm]
-\rule{0.55\textwidth}{0.6pt}\\[16pt]
-{\fontsize{36}{42}\selectfont\bfseries Koto Pai?}\\[10pt]
-{\large Bill splitting that adds up to the last poisha}\\[16pt]
-\rule{0.55\textwidth}{0.6pt}
+{\large Final Project}\\[3cm]
+{\fontsize{40}{46}\selectfont\bfseries Koto Pai?}
 \vfill
-{\large Submitted by}\\[12pt]
+{\Large Submitted by}\\[16pt]
+\renewcommand{\arraystretch}{1.6}
 \begin{tabular}{lr}
-Rafsan Riasat & 2207006 \\
-Adib Raian    & 2207020 \\
-Utsa Roy      & 2207027 \\
+{\Large Rafsan Riasat} & {\Large 2207006} \\
+{\Large Adib Raian}    & {\Large 2207020} \\
+{\Large Utsa Roy}      & {\Large 2207027} \\
 \end{tabular}
 \vfill
 {\large December 2026}
 \vspace*{1.2cm}
 \end{titlepage}
-
-% ================================================================ contents
-\setcounter{tocdepth}{1}
-\tableofcontents
 
 % ================================================================ 1 introduction
 \section{Introduction}
@@ -623,6 +617,7 @@ POST /api/outings/preview   (two participants, one Tk 800 item split equally, us
 \end{lstlisting}
 
 % ================================================================ 6 security
+\Needspace{10\baselineskip}
 \section{Security}
 
 {\small
@@ -826,6 +821,7 @@ Utsa Roy & 2207027 & \code{auth}, \code{user}, \code{friend}, \code{notification
 \end{tabularx}
 \end{table}
 
+\Needspace{12\baselineskip}
 \subsection{Timeline}
 
 {\small
@@ -850,6 +846,7 @@ Nov 27 & Deployment, monitoring, build fixes, CI deploy job, hosted Grafana \\
 Nov 28 & Real administrator through configuration, admin user search, README \\
 \end{longtable}}
 
+\Needspace{9\baselineskip}
 \subsection{What went wrong, and what it taught}
 
 {\small
@@ -900,6 +897,7 @@ changeable, and the defects that did occur were found by tests and fixed early. 
 the natural next steps.
 
 % ================================================================ references
+\Needspace{24\baselineskip}
 \begin{thebibliography}{99}\footnotesize
 \setlength{\itemsep}{1pt}\setlength{\parskip}{0pt}
 \bibitem{springboot} Spring Boot Reference Documentation. \url{https://docs.spring.io/spring-boot/}
