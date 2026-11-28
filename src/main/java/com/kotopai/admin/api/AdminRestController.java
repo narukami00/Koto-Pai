@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kotopai.admin.dto.AdminSystemStats;
@@ -40,8 +41,8 @@ public class AdminRestController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<AdminUserView>> listUsers() {
-        return ResponseEntity.ok(adminService.listUsers());
+    public ResponseEntity<List<AdminUserView>> listUsers(@RequestParam(value = "q", required = false) String query) {
+        return ResponseEntity.ok(adminService.listUsers(query));
     }
 
     @PostMapping("/users/{id}/role")

@@ -2,6 +2,7 @@ package com.kotopai.admin.service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import org.springframework.stereotype.Service;
@@ -85,8 +86,10 @@ public class DefaultAdminService implements AdminService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AdminUserView> listUsers() {
-        return userRepository.findAll().stream()
+    public List<AdminUserView> listUsers(String query) {
+        String term = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
+        List<User> users = term.isEmpty() ? userRepository.findAll() : userRepository.searchByTerm(term);
+        return users.stream()
                 .map(AdminUserView::from)
                 .toList();
     }

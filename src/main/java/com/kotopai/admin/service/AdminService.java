@@ -20,10 +20,11 @@ public interface AdminService {
     AdminSystemStats getSystemStats();
 
     /**
-     * Lists all registered users.
+     * Lists registered users. A blank {@code query} returns everyone; otherwise only users whose handle, display
+     * name or e-mail contains the text (case-insensitive).
      */
     @PreAuthorize("hasRole('ADMIN')")
-    List<AdminUserView> listUsers();
+    List<AdminUserView> listUsers(String query);
 
     /**
      * Updates the role of a user, preventing self-demotion if they are the sole admin.

@@ -45,11 +45,28 @@
   <div class="sec">
     <h2>
       User Management
-      <span class="tag ok" th:text="${#lists.size(users)} + ' total'">0 total</span>
+      <span class="tag ok" th:if="${#strings.isEmpty(q)}" th:text="${#lists.size(users)} + ' total'">0 total</span>
+      <span class="tag ok" th:unless="${#strings.isEmpty(q)}" th:text="${#lists.size(users)} + ' found'">0 found</span>
     </h2>
   </div>
 
-  <div class="card">
+  <!-- Search users by name, handle or e-mail -->
+  <form th:action="@{/admin}" method="get" class="searchbox" role="search" style="margin-bottom: 14px;">
+    <input type="search" name="q" th:value="${q}" maxlength="80" autocomplete="off"
+           placeholder="Search by name, @handle or e-mail" aria-label="Search users" />
+    <button type="submit" class="btn" title="Search users">
+      <svg class="i"><use href="#i-search"/></svg>
+      Search
+    </button>
+    <a th:unless="${#strings.isEmpty(q)}" th:href="@{/admin}" class="btn line">Clear</a>
+  </form>
+
+  <div class="card" th:if="${#lists.isEmpty(users)}" style="padding: 18px; text-align: center; color: var(--muted);">
+    <span th:unless="${#strings.isEmpty(q)}" th:text="${'No users match “' + q + '”.'}">No users match.</span>
+    <span th:if="${#strings.isEmpty(q)}">No users yet.</span>
+  </div>
+
+  <div class="card" th:unless="${#lists.isEmpty(users)}">
     <div th:each="u : ${users}" class="row" style="align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 12px;">
         <div class="av"

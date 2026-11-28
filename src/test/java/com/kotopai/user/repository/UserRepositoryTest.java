@@ -80,6 +80,37 @@ class UserRepositoryTest {
     }
 
     @Test
+    @DisplayName("searchByTerm matches handle, display name or e-mail, ignoring case, ordered by name")
+    void searchByTermMatchesAnyField() {
+        userRepository.saveAndFlush(new User("zqx_carol", "Carol Zqx", "carol@example.com", "hash", Role.USER));
+        userRepository.saveAndFlush(new User("zqx_alice", "alice", "alice@example.com", "hash", Role.USER));
+        userRepository.saveAndFlush(new User("plain_bob", "Bob", "bob@zqx.example", "hash", Role.USER));
+        userRepository.saveAndFlush(new User("unrelated", "Unrelated", "nope@example.com", "hash", Role.USER));
+
+        assertThat(userRepository.searchByTerm("zqx"))
+                .extracting(User::getUserCode)
+                .containsExactly("zqx_alice", "plain_bob", "zqx_carol");
+    }
+
+    @Test
+    @DisplayName("searchByTerm treats % and _ as plain characters, never as wildcards")
+    void searchByTermIsLiteral() {
+        userRepository.saveAndFlush(new User("under_score", "Under Score", "us@example.com", "hash", Role.USER));
+        userRepository.saveAndFlush(new User("underxscore", "Underx Score", "ux@example.com", "hash", Role.USER));
+
+        assertThat(userRepository.searchByTerm("er_sc")).extracting(User::getUserCode).containsExactly("under_score");
+        assertThat(userRepository.searchByTerm("%")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("searchByTerm returns an empty list when nothing matches")
+    void searchByTermNoMatch() {
+        userRepository.saveAndFlush(new User("someone", "Someone", "someone@example.com", "hash", Role.USER));
+
+        assertThat(userRepository.searchByTerm("definitely-not-there")).isEmpty();
+    }
+
+    @Test
     @DisplayName("Rejects duplicate userCode via database unique constraint")
     void rejectsDuplicateUserCode() {
         User user1 = new User("duplicate_code", "User One", "user1@example.com", "hash", Role.USER);

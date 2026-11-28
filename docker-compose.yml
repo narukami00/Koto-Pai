@@ -48,6 +48,10 @@ services:
       DB_SSLMODE: disable
       # Password Prometheus uses to scrape /actuator/prometheus. Leave it unset in production to keep metrics closed.
       METRICS_PASSWORD: ${METRICS_PASSWORD:-kotopai_metrics}
+      # Optional real administrator (see DEPLOYMENT.md, "Administrator account"). Empty = none is created.
+      KOTOPAI_ADMIN_USER_CODE: ${KOTOPAI_ADMIN_USER_CODE:-}
+      KOTOPAI_ADMIN_EMAIL: ${KOTOPAI_ADMIN_EMAIL:-}
+      KOTOPAI_ADMIN_PASSWORD: ${KOTOPAI_ADMIN_PASSWORD:-}
     ports:
       - "${HOST_APP_PORT:-8080}:8080"
     networks:

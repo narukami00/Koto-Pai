@@ -81,7 +81,7 @@ class AdminRestControllerTest {
     void getUsers_asAdmin_returns200() throws Exception {
         AdminUserView u1 = new AdminUserView(1L, "admin", "Admin", "admin@kotopai.com", Role.ADMIN, Instant.now());
         AdminUserView u2 = new AdminUserView(2L, "user1", "User One", "user1@kotopai.com", Role.USER, Instant.now());
-        when(adminService.listUsers()).thenReturn(List.of(u1, u2));
+        when(adminService.listUsers(null)).thenReturn(List.of(u1, u2));
 
         mvc.perform(get("/api/admin/users").with(user(adminDetails)))
                 .andExpect(status().isOk())
@@ -89,6 +89,25 @@ class AdminRestControllerTest {
                 .andExpect(jsonPath("$[0].role").value("ADMIN"))
                 .andExpect(jsonPath("$[1].userCode").value("user1"))
                 .andExpect(jsonPath("$[1].role").value("USER"));
+    }
+
+    @Test
+    @DisplayName("GET /api/admin/users?q=... returns only the matching users")
+    void getUsers_withQuery_filters() throws Exception {
+        AdminUserView match = new AdminUserView(2L, "user1", "User One", "user1@kotopai.com", Role.USER, Instant.now());
+        when(adminService.listUsers("user")).thenReturn(List.of(match));
+
+        mvc.perform(get("/api/admin/users").param("q", "user").with(user(adminDetails)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].userCode").value("user1"));
+    }
+
+    @Test
+    @DisplayName("GET /api/admin/users?q=... is forbidden for a regular user")
+    void getUsers_withQuery_forbiddenForUser() throws Exception {
+        mvc.perform(get("/api/admin/users").param("q", "user").with(user(regularUserDetails)))
+                .andExpect(status().isForbidden());
     }
 
     @Test

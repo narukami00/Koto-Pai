@@ -30,7 +30,8 @@ docker compose logs -f app
 ### Access Application
 - Web Dashboard: [http://localhost:8080](http://localhost:8080)
 - Actuator Health Check: [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health)
-- Demo logins (Compose starts with the `demo` profile): `admin` / `password123` (admin), `rafsan10`, `tanvir_h`, `nabila_r`, `samiha` (all `password123`), with three demo outings. See `MANUAL_TEST.md`.
+- Demo logins (Compose starts with the `demo` profile): `rafsan10`, `tanvir_h`, `nabila_r`, `samiha` (all `password123`), with three demo outings. See `MANUAL_TEST.md`.
+- There is no demo admin under Compose. To see the Admin Console, set `KOTOPAI_ADMIN_USER_CODE` (see [Administrator account](#administrator-account)), or run locally with the `h2` profile, which still creates `admin` / `password123`.
 - If port 8080 is taken (Docker Desktop can hold it), use another: `HOST_APP_PORT=8082 docker compose up --build`.
 
 ### Stop Services
@@ -84,6 +85,29 @@ docker compose --profile monitoring up -d --build
 | `HOST_APP_PORT` | `8080` | Host port mapped to container port 8080 |
 | `METRICS_USER` / `METRICS_PASSWORD` | `prometheus` / `kotopai_metrics` (Compose) | Scrape account for `/actuator/prometheus`; metrics stay closed when the password is empty |
 | `HOST_PROMETHEUS_PORT` / `HOST_GRAFANA_PORT` | `9090` / `3000` | Host ports for the monitoring profile |
+| `KOTOPAI_ADMIN_USER_CODE` | empty (no admin bootstrap) | Handle of the administrator. See [Administrator account](#administrator-account) |
+| `KOTOPAI_ADMIN_EMAIL` / `KOTOPAI_ADMIN_PASSWORD` | empty | Only needed when that user does not exist yet: the e-mail and a password of at least 8 characters for the new account |
+| `KOTOPAI_ADMIN_DISPLAY_NAME` | `Administrator` | Display name for a newly created administrator |
+
+### Administrator account
+
+A hosted deployment has no built-in administrator and no account with a published password. The demo `admin` user
+(password `password123`) is created only for local runs (`dev` / `h2`), never under `demo` on a hosted deployment.
+
+To get a real administrator, set the settings above. On every start the app does the following, and it is safe to
+repeat:
+
+- `KOTOPAI_ADMIN_USER_CODE` empty: nothing happens.
+- The user already exists (they registered normally): they are promoted to ADMIN. Their password is not touched, so
+  only the user code is needed.
+- The user does not exist: an ADMIN account is created from `KOTOPAI_ADMIN_EMAIL` and `KOTOPAI_ADMIN_PASSWORD`.
+  A bad value is logged and skipped; the app still starts.
+
+Set the password only as a secret in the hosting dashboard; it is never logged. Admins see platform analytics and can
+search users and change roles. They cannot see anyone's outings or debts.
+
+Without the bootstrap, the same result needs one manual SQL statement:
+`UPDATE users SET role = 'ADMIN' WHERE user_code = '<handle>';`
 
 ---
 
@@ -118,6 +142,8 @@ docker run -d \
    - `SPRING_PROFILES_ACTIVE` = `prod` (add `,demo` only if you want the demo accounts on the live site)
    - `DB_HOST`, `DB_PORT` (`5432`), `DB_NAME`, `DB_USER`, `DB_PASSWORD` from Neon
    - `DB_SSLMODE` = `require` (Neon needs SSL)
+   - `KOTOPAI_ADMIN_USER_CODE` = the handle of your own account, to make it the administrator (see
+     [Administrator account](#administrator-account))
 4. Health check path: `/actuator/health` (public, returns `{"status":"UP"}`).
 5. Render sets `PORT` itself; the app reads it. No port setting is needed.
 
